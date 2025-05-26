@@ -4,9 +4,11 @@ import { ref, onMounted } from 'vue';
 const repos = ref([]);
 const latestCommit = ref(null);
 
-const truncateMessage = (message, limit = 100) => {
-  if (message.length <= limit) return message;
-  return message.substring(0, limit) + '...';
+const truncateMessage = (message, limit = 150) => {
+  if (!message) return '';
+  const cleanMessage = message.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+  if (cleanMessage.length <= limit) return cleanMessage;
+  return cleanMessage.substring(0, limit) + '...';
 };
 
 onMounted(async () => {
@@ -19,16 +21,15 @@ onMounted(async () => {
       return;
     });
 
-  await fetch('https://api.github.com/users/lostf1sh/events')
+  await fetch('https://api.github.com/repos/lostf1sh/website/commits')
     .then(response => response.json())
     .then(data => {
-      const pushEvent = data.find(event => event.type === 'PushEvent');
-      if (pushEvent) {
+      if (data && data[0]) {
         latestCommit.value = {
-          repo: pushEvent.repo.name,
-          message: pushEvent.payload.commits[0].message,
-          url: `https://github.com/${pushEvent.repo.name}/commit/${pushEvent.payload.commits[0].sha}`,
-          date: new Date(pushEvent.created_at).toLocaleDateString()
+          repo: 'lostf1sh/website',
+          message: data[0].commit.message,
+          url: data[0].html_url,
+          date: new Date(data[0].commit.author.date).toLocaleDateString()
         };
       }
     })
@@ -52,7 +53,7 @@ onMounted(async () => {
             <span class="font-bold">{{ latestCommit.repo }}</span>
             <span class="text-sm text-catppuccin-gray">{{ latestCommit.date }}</span>
           </div>
-          <div class="text-sm">{{ truncateMessage(latestCommit.message) }}</div>
+          <div class="text-sm text-catppuccin-text whitespace-pre-wrap">{{ truncateMessage(latestCommit.message) }}</div>
         </a>
       </div>
 
