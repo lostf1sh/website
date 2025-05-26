@@ -22,8 +22,18 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/'),
   routes
+})
+
+// Handle GitHub Pages 404 redirect
+router.beforeEach((to, from, next) => {
+  if (to.path.includes('/?/')) {
+    const path = to.path.split('/?/')[1]
+    next(path)
+  } else {
+    next()
+  }
 })
 
 export default router 
