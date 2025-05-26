@@ -100,8 +100,8 @@ onUnmounted(() => {
       </div>
       <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-8 animate-fade-in" style="animation-delay: 0.1s;">
         <p class="text-catppuccin-text text-lg leading-relaxed">
-          A passionate developer and creator, always exploring new technologies and pushing the boundaries of what's possible. 
-          When I'm not coding, you can find me playing table tennis, experimenting with new recipes, or diving into the world of chemistry.
+          A developer who loves building things and solving problems. 
+          When I'm not coding, I enjoy playing table tennis and experimenting in the kitchen.
         </p>
       </div>
 
