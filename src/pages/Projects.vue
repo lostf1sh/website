@@ -1,0 +1,93 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+
+const repos = ref([]);
+const latestCommit = ref(null);
+
+const truncateMessage = (message, limit = 100) => {
+  if (message.length <= limit) return message;
+  return message.substring(0, limit) + '...';
+};
+
+onMounted(async () => {
+  await fetch('https://api.github.com/users/lostf1sh/repos')
+    .then(response => response.json())
+    .then(data => {
+      repos.value = data.sort((a, b) => b.stargazers_count - a.stargazers_count);
+    })
+    .catch(() => {
+      return;
+    });
+
+  await fetch('https://api.github.com/users/lostf1sh/events')
+    .then(response => response.json())
+    .then(data => {
+      const pushEvent = data.find(event => event.type === 'PushEvent');
+      if (pushEvent) {
+        latestCommit.value = {
+          repo: pushEvent.repo.name,
+          message: pushEvent.payload.commits[0].message,
+          url: `https://github.com/${pushEvent.repo.name}/commit/${pushEvent.payload.commits[0].sha}`,
+          date: new Date(pushEvent.created_at).toLocaleDateString()
+        };
+      }
+    })
+    .catch(() => {
+      return;
+    });
+})
+</script>
+
+<template>
+  <div class="sm:pt-20 max-w-screen-lg mx-auto p-5 relative">
+    <div class="z-0 absolute mt-10 text-[10rem] opacity-10 select-none">🏓</div>
+    <div class="relative mb-10">
+      <div class="mb-2 font-black text-2xl">projects/</div>
+      
+      <div v-if="latestCommit" class="mb-6 p-4 bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg">
+        <div class="text-sm text-catppuccin-gray mb-2">Latest Commit</div>
+        <a :href="latestCommit.url" target="_blank" class="block hover:bg-[#313244] p-2 rounded transition-all duration-300">
+          <div class="flex items-center gap-2 mb-1">
+            <font-awesome-icon :icon="['fas', 'code']" class="text-blue-500" />
+            <span class="font-bold">{{ latestCommit.repo }}</span>
+            <span class="text-sm text-catppuccin-gray">{{ latestCommit.date }}</span>
+          </div>
+          <div class="text-sm">{{ truncateMessage(latestCommit.message) }}</div>
+        </a>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-2">
+        <div v-if="!repos.length">projects could not be retrieved.</div>
+        <a v-for="repo in repos" :href="repo.html_url" target="_blank"
+          class="project-card flex flex-col justify-between px-5 py-3 bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg text-sm">
+          <div class="flex items-center gap-1 text-catppuccin-gray">
+            <img :src="repo.owner.avatar_url" class="rounded-full w-4">
+            {{ repo.owner.login }}
+          </div>
+          <div :class="['font-bold', 'text-lg', repo.archived ? 'line-through' : '']">{{ repo.name }}</div>
+          <div>{{ repo.description }}</div>
+          <div class="flex mt-2 gap-5">
+            <div>
+              <font-awesome-icon :icon="['fas', 'star']" />
+              {{ repo.stargazers_count }}
+            </div>
+            <div>
+              <font-awesome-icon :icon="['fas', 'code-branch']" />
+              {{ repo.forks_count }}
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.project-card {
+  transition: all 0.3s ease;
+}
+.project-card:hover {
+  background-color: #313244;
+  border-color: #cdd6f4;
+}
+</style> 

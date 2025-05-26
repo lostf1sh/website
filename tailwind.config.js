@@ -12,7 +12,6 @@ export default {
       sans: ['"Inter"', ...defaultTheme.fontFamily.sans],
       mono: ['"Roboto Mono"', ...defaultTheme.fontFamily.mono],
     },
-    /* https://raw.githubusercontent.com/luisiacc/catppuccin-baby/main/extras/media/palettes/medium.svg */
     colors: {
       'catppuccin-crust': '#11111b',
       'catppuccin-base': '#1e1e2e',
