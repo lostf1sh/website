@@ -98,6 +98,7 @@ onUnmounted(() => {
       <div class="font-sans font-black text-6xl text-catppuccin-mauve animate-fade-in mb-8">
         f1sh.pics
       </div>
+      <!-- Bio section with personal description -->
       <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-8 animate-fade-in" style="animation-delay: 0.1s;">
         <p class="text-catppuccin-text text-lg leading-relaxed">
           A developer who loves building things and solving problems. 
