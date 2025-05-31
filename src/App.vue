@@ -4,7 +4,7 @@ import Footer from './components/Footer.vue';
 </script>
 
 <template>
-  <div class="pb-24">
+  <div class="pb-24 md:pb-24">
     <router-view></router-view>
     <Navigation />
     <Footer />

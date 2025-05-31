@@ -88,26 +88,26 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="sm:pt-20 max-w-screen-lg mx-auto p-5 relative">
+  <div class="max-w-screen-lg mx-auto px-4 py-2 md:p-5 relative">
     <!-- Decorative elements -->
-    <div class="z-0 absolute -mt-10 right-0 text-[10rem] opacity-10 select-none animate-float">🔥</div>
-    <div class="z-0 absolute top-1/2 left-0 text-[8rem] opacity-10 select-none animate-float-delayed">⚡</div>
+    <div class="z-0 absolute -mt-10 right-0 text-[6rem] md:text-[10rem] opacity-10 select-none animate-float hidden sm:block">🔥</div>
+    <div class="z-0 absolute top-1/2 left-0 text-[5rem] md:text-[8rem] opacity-10 select-none animate-float-delayed hidden sm:block">⚡</div>
     
     <!-- Header Section -->
-    <div class="relative mb-16">
-      <div class="font-sans font-black text-6xl text-catppuccin-mauve animate-fade-in mb-8">
+    <div class="relative mb-8 md:mb-16 mt-4 md:mt-8">
+      <div class="font-sans font-black text-4xl md:text-6xl text-catppuccin-mauve animate-fade-in mb-4 md:mb-8">
         f1sh.pics
       </div>
       <!-- Bio section with personal description -->
-      <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-8 animate-fade-in" style="animation-delay: 0.1s;">
-        <p class="text-catppuccin-text text-lg leading-relaxed">
+      <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-4 md:p-8 animate-fade-in" style="animation-delay: 0.1s;">
+        <p class="text-catppuccin-text text-base md:text-lg leading-relaxed">
           A developer who loves building things and solving problems. 
           When I'm not coding, I enjoy playing table tennis and experimenting in the kitchen.
         </p>
       </div>
 
-      <div class="mt-6 animate-slide-up" style="animation-delay: 0.2s;">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="mt-4 md:mt-6 animate-slide-up" style="animation-delay: 0.2s;">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           <div class="lanyard-card flex items-center gap-3 p-3 rounded-lg text-sm bg-catppuccin-surface/30 border-catppuccin-overlay border-[0.5px] hover:bg-catppuccin-surface hover:border-catppuccin-text transition-all duration-300">
             <font-awesome-icon :icon="['fab', 'spotify']" class="text-2xl text-catppuccin-green w-6 h-6" />
             <div class="text-sm font-sans">
@@ -147,7 +147,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="flex gap-6 mt-8 animate-fade-in" style="animation-delay: 0.3s;">
+      <div class="flex flex-wrap gap-3 md:gap-6 mt-6 md:mt-8 animate-fade-in" style="animation-delay: 0.3s;">
         <a 
           href="https://github.com/lostf1sh/" 
           target="_blank" 
@@ -182,31 +182,31 @@ onUnmounted(() => {
     </div>
 
     <!-- Uses Section -->
-    <div class="relative mb-16">
-      <div class="mb-6">
-        <h2 class="text-3xl font-black text-catppuccin-mauve mb-4 animate-fade-in">tech stack</h2>
-        <p class="text-catppuccin-text mb-6 max-w-2xl animate-fade-in" style="animation-delay: 0.1s;">
+    <div class="relative mb-8 md:mb-16">
+      <div class="mb-4 md:mb-6">
+        <h2 class="text-2xl md:text-3xl font-black text-catppuccin-mauve mb-2 md:mb-4 animate-fade-in">tech stack</h2>
+        <p class="text-catppuccin-text text-sm md:text-base mb-4 md:mb-6 max-w-2xl animate-fade-in" style="animation-delay: 0.1s;">
           Here's what I use to build and create. A carefully curated set of tools and technologies that help me bring ideas to life.
         </p>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in" style="animation-delay: 0.2s;">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 animate-fade-in" style="animation-delay: 0.2s;">
         <!-- Development Tools -->
-        <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-6 hover:bg-[#313244] transition-all duration-300">
-          <h3 class="text-xl font-bold text-catppuccin-blue mb-4 flex items-center gap-2">
+        <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-4 md:p-6 hover:bg-[#313244] transition-all duration-300">
+          <h3 class="text-lg md:text-xl font-bold text-catppuccin-blue mb-3 md:mb-4 flex items-center gap-2">
             <font-awesome-icon :icon="['fas', 'code']" />
             Development Tools
           </h3>
-          <img src="https://skillicons.dev/icons?i=linux,git,vscode,github,gitlab,gcp,firebase" class="select-none mb-2" />
+          <img src="https://skillicons.dev/icons?i=linux,git,vscode,github,gitlab,gcp,firebase" class="select-none mb-2 max-w-full" />
         </div>
 
         <!-- Technologies -->
-        <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-6 hover:bg-[#313244] transition-all duration-300">
-          <h3 class="text-xl font-bold text-catppuccin-green mb-4 flex items-center gap-2">
+        <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-4 md:p-6 hover:bg-[#313244] transition-all duration-300">
+          <h3 class="text-lg md:text-xl font-bold text-catppuccin-green mb-3 md:mb-4 flex items-center gap-2">
             <font-awesome-icon :icon="['fas', 'laptop-code']" />
             Technologies
           </h3>
-          <img src="https://skillicons.dev/icons?i=python,tailwind,javascript,typescript,vue,react,svelte" class="select-none" />
+          <img src="https://skillicons.dev/icons?i=python,tailwind,javascript,typescript,vue,react,svelte" class="select-none max-w-full" />
         </div>
       </div>
     </div>
@@ -234,4 +234,4 @@ onUnmounted(() => {
     transform: translateY(0px);
   }
 }
-</style> 
+</style>

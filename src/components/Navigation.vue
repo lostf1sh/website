@@ -7,7 +7,10 @@ const isActive = (path) => computed(() => route.path === path)
 </script>
 
 <template>
-  <nav class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-catppuccin-mauve rounded-full shadow-xl z-50 hover:shadow-2xl transition-all duration-300">
+
+
+  <!-- Desktop Navigation (hidden on small screens, visible on medium and larger) -->
+  <nav class="hidden md:block fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-catppuccin-mauve rounded-full shadow-xl z-50 hover:shadow-2xl transition-all duration-300">
     <div class="px-4">
       <div class="flex justify-around h-16">
         <RouterLink 
@@ -51,4 +54,42 @@ const isActive = (path) => computed(() => route.path === path)
       </div>
     </div>
   </nav>
-</template> 
+
+  <!-- Mobile Bottom Navigation Bar (visible on small screens) -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-catppuccin-base border-t border-catppuccin-surface z-40">
+    <div class="flex justify-around h-16">
+      <RouterLink 
+        to="/" 
+        :class="[
+          'flex flex-col items-center justify-center w-full transition-all duration-300',
+          isActive('/').value ? 'text-catppuccin-mauve' : 'text-catppuccin-subtle hover:text-catppuccin-text'
+        ]"
+      >
+        <font-awesome-icon icon="fa-solid fa-house" class="text-xl mb-1" />
+        <span class="text-xs">Home</span>
+      </RouterLink>
+      
+      <RouterLink 
+        to="/projects" 
+        :class="[
+          'flex flex-col items-center justify-center w-full transition-all duration-300',
+          isActive('/projects').value ? 'text-catppuccin-mauve' : 'text-catppuccin-subtle hover:text-catppuccin-text'
+        ]"
+      >
+        <font-awesome-icon icon="fa-solid fa-code" class="text-xl mb-1" />
+        <span class="text-xs">Projects</span>
+      </RouterLink>
+      
+      <RouterLink 
+        to="/songs" 
+        :class="[
+          'flex flex-col items-center justify-center w-full transition-all duration-300',
+          isActive('/songs').value ? 'text-catppuccin-mauve' : 'text-catppuccin-subtle hover:text-catppuccin-text'
+        ]"
+      >
+        <font-awesome-icon icon="fa-brands fa-spotify" class="text-xl mb-1" />
+        <span class="text-xs">Songs</span>
+      </RouterLink>
+    </div>
+  </nav>
+</template>

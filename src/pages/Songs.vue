@@ -103,16 +103,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="sm:pt-20 max-w-screen-lg mx-auto p-5 relative">
-    <div class="relative mb-10">
-      <div class="mt-8">
-        <h2 class="text-2xl font-bold mb-4 text-catppuccin-milk">songs/</h2>
+  <div class="max-w-screen-lg mx-auto px-4 py-2 md:p-5 relative">
+    <div class="relative mb-6 md:mb-10 mt-4 md:mt-8">
+      <div>
+        <h2 class="text-xl md:text-2xl font-bold mb-3 md:mb-4 text-catppuccin-milk">songs/</h2>
         
         <!-- Now Playing Section -->
-        <div class="mb-8 p-4 bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg animate-fade-in">
+        <div class="mb-6 md:mb-8 p-3 md:p-4 bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg animate-fade-in">
           <div class="text-sm text-catppuccin-gray mb-2">Now Playing</div>
-          <div v-if="currentTrack" class="flex items-center gap-4">
-            <div class="w-24 h-24 rounded-lg overflow-hidden bg-[#313244] flex items-center justify-center">
+          <div v-if="currentTrack" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-[#313244] flex items-center justify-center">
               <img 
                 :src="currentTrack.image[3]['#text']" 
                 alt="track image" 
@@ -135,8 +135,8 @@ onBeforeUnmount(() => {
               </a>
             </div>
           </div>
-          <div v-else class="flex items-center gap-4">
-            <div class="w-24 h-24 rounded-lg bg-[#313244] flex items-center justify-center">
+          <div v-else class="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-[#313244] flex items-center justify-center">
               <font-awesome-icon :icon="['fas', 'music']" class="text-4xl text-catppuccin-subtle" />
             </div>
             <div class="flex-1">
@@ -153,10 +153,10 @@ onBeforeUnmount(() => {
           <div
             v-for="track in consolidatedTracks"
             :key="`${track.name}-${track.artist['#text']}-${track.date}`"
-            class="flex items-center gap-4 p-3 bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg hover:bg-[#313244] transition-all duration-300 cursor-pointer"
+            class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg hover:bg-[#313244] transition-all duration-300 cursor-pointer"
             @click="goToTrack(track.url)"
           >
-            <div class="w-16 h-16 rounded-md overflow-hidden bg-[#313244] flex items-center justify-center">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-md overflow-hidden bg-[#313244] flex items-center justify-center">
               <img 
                 :src="track.image[2]['#text']" 
                 alt="track image" 
@@ -170,14 +170,14 @@ onBeforeUnmount(() => {
                 class="text-2xl text-catppuccin-subtle animate-spin-slow" 
               />
             </div>
-            <div class="flex-1 min-w-0">
+            <div class="flex-1 min-w-0 mt-1 sm:mt-0">
               <p class="font-bold text-catppuccin-milk truncate" :title="track.name">
                 {{ track.name }}
                 <span v-if="track.playcount > 1" class="text-catppuccin-green text-sm ml-2">{{ track.playcount }}x</span>
               </p>
               <p class="text-catppuccin-gray truncate" :title="track.artist['#text']">{{ track.artist['#text'] }}</p>
             </div>
-            <div class="text-sm text-catppuccin-subtle">
+            <div class="text-xs sm:text-sm text-catppuccin-subtle mt-1 sm:mt-0">
               {{ formatDate(track.date) }}
             </div>
           </div>
@@ -215,4 +215,4 @@ onBeforeUnmount(() => {
     transform: rotate(360deg);
   }
 }
-</style> 
+</style>
