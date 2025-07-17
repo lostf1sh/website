@@ -3,7 +3,60 @@
 
 @import './base.css';
 
+/* Global styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: linear-gradient(135deg, #1e1e2e 0%, #181825 100%);
+  min-height: 100vh;
+}
+
 ::selection {
   background: theme('colors.catppuccin-surface');
   color: theme('colors.catppuccin-text');
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: theme('colors.catppuccin-base');
+}
+
+::-webkit-scrollbar-thumb {
+  background: theme('colors.catppuccin-surface');
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.catppuccin-overlay');
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid theme('colors.catppuccin-mauve');
+  outline-offset: 2px;
+}
+
+/* Glass morphism utility */
+.glass {
+  background: rgba(49, 50, 68, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(205, 214, 244, 0.1);
+}
+
+/* Hover glow effect */
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(203, 166, 247, 0.3);
 }

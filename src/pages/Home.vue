@@ -1,16 +1,19 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { lanyardData } from '@/services/lanyardService';
+import { getRecentTracks } from '@/services/lastfmService';
 
-const discordStatusColor = ref('text-catppuccin-subtle');
-const spotify = ref(null);
-const discordStatus = ref('offline');
-const vscodeActivity = ref(null);
-const ws = ref(null);
-const heartbeatIntervalId = ref(null);
+
+const discordStatusColor = computed(() => lanyardData.discordStatusColor);
+const spotify = computed(() => lanyardData.spotify);
+const discordStatus = computed(() => lanyardData.discordStatus);
+const discordUser = computed(() => lanyardData.discordUser);
+const vscodeActivity = computed(() => lanyardData.vscodeActivity);
+const isLoading = computed(() => lanyardData.isLoading);
 
 const vscodeStatus = computed(() => {
   if (!vscodeActivity.value) return null;
-  
+
   if (vscodeActivity.value.details && vscodeActivity.value.details.toLowerCase().includes('idling')) {
     return 'idling';
   }
@@ -21,217 +24,449 @@ const vscodeStatus = computed(() => {
   };
 });
 
-onMounted(() => {
-  ws.value = new WebSocket('wss://api.lanyard.rest/socket');
 
-  ws.value.onopen = () => {
-    ws.value.send(JSON.stringify({
-      op: 2,
-      d: { subscribe_to_id: '470904884946796544' }
-    }));
-  };
+const repos = ref([]);
+const latestCommit = ref(null);
 
-  ws.value.onmessage = (event) => {
-    const message = JSON.parse(event.data);
+// Songs data
+const allTracks = ref([]);
+const songsLoading = ref(true);
+const songsError = ref(null);
+const imageErrors = ref({});
+let updateInterval = null;
 
-    if (message.op === 1) {
-      ws.value.send(JSON.stringify({ op: 3 }));
-      return;
-    }
+// Projects functions
+const truncateMessage = (message, limit = 150) => {
+  if (!message) return '';
+  const cleanMessage = message.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+  if (cleanMessage.length <= limit) return cleanMessage;
+  return cleanMessage.substring(0, limit) + '...';
+};
 
-    if (message.t === 'INIT_STATE' || message.t === 'PRESENCE_UPDATE') {
-      const data = message.d;
-      
-      if (data.spotify) {
-        spotify.value = {
-          song: data.spotify.song,
-          artist: data.spotify.artist,
-          track_id: data.spotify.track_id
-        };
-      } else {
-        spotify.value = null;
-      }
+// Songs functions
+const handleImageError = (trackName) => {
+  imageErrors.value[trackName] = true;
+};
 
-      if (data.discord_status) {
-        discordStatus.value = data.discord_status;
-        if (data.discord_status === 'online') {
-          discordStatusColor.value = 'text-catppuccin-gold';
-        } else {
-          discordStatusColor.value = 'text-catppuccin-subtle';
-        }
-      }
-
-      if (data.activities) {
-        vscodeActivity.value = data.activities.find(activity => 
-          activity.name === 'Visual Studio Code' || 
-          activity.name === 'Code'
-        );
-      }
-    }
-  };
-
-  ws.value.onclose = () => {
-    if (heartbeatIntervalId.value) {
-      clearInterval(heartbeatIntervalId.value);
-    }
-  };
+const currentTrack = computed(() => {
+  return allTracks.value.find(track => track['@attr']?.nowplaying);
 });
 
-onUnmounted(() => {
-  if (ws.value) {
-    ws.value.close();
+const consolidatedTracks = computed(() => {
+  const tracks = allTracks.value.filter(track => !track['@attr']?.nowplaying);
+  const consolidated = [];
+  let currentTrack = null;
+  let count = 1;
+
+  tracks.forEach((track, index) => {
+    const key = `${track.name}-${track.artist['#text']}`;
+
+    if (currentTrack === key) {
+      count++;
+    } else {
+      if (currentTrack) {
+        const prevTrack = tracks[index - 1];
+        consolidated.push({
+          ...prevTrack,
+          playcount: count,
+          date: prevTrack.date?.['#text']
+        });
+      }
+      currentTrack = key;
+      count = 1;
+    }
+
+    if (index === tracks.length - 1) {
+      consolidated.push({
+        ...track,
+        playcount: count,
+        date: track.date?.['#text']
+      });
+    }
+  });
+
+  return consolidated.slice(0, 10);
+});
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const goToTrack = (url) => {
+  window.open(url, '_blank');
+};
+
+// Language icon mapping function
+const getLanguageIcon = (language) => {
+  // Languages not supported by skillicons - use devicons
+  const devIcons = {
+    'QML': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/qt/qt-original.svg',
+    'CMake': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cmake/cmake-original.svg',
+    'Makefile': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cmake/cmake-original.svg',
+    'Objective-C': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/objectivec/objectivec-plain.svg',
+    'Vim script': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vim/vim-original.svg'
+  };
+
+  // Check if we have a devicon first
+  if (devIcons[language]) {
+    return devIcons[language];
   }
-  if (heartbeatIntervalId.value) {
-    clearInterval(heartbeatIntervalId.value);
+
+  // Skillicons mapping
+  const languageMap = {
+    'JavaScript': 'js',
+    'TypeScript': 'ts',
+    'Python': 'py',
+    'Java': 'java',
+    'C++': 'cpp',
+    'C#': 'cs',
+    'C': 'c',
+    'Go': 'go',
+    'Rust': 'rust',
+    'PHP': 'php',
+    'Ruby': 'ruby',
+    'Swift': 'swift',
+    'Kotlin': 'kotlin',
+    'Dart': 'dart',
+    'HTML': 'html',
+    'CSS': 'css',
+    'Vue': 'vue',
+    'React': 'react',
+    'Svelte': 'svelte',
+    'Angular': 'angular',
+    'Shell': 'bash',
+    'PowerShell': 'powershell',
+    'Dockerfile': 'docker'
+  };
+
+  const mappedLanguage = languageMap[language] || language.toLowerCase();
+  return `https://skillicons.dev/icons?i=${mappedLanguage}`;
+};
+
+const fetchSongs = async () => {
+  try {
+    songsLoading.value = true;
+    const newTracks = await getRecentTracks();
+    allTracks.value = newTracks;
+    imageErrors.value = {};
+    songsError.value = null;
+  } catch (err) {
+    songsError.value = "Failed to load tracks. Please try again later.";
+    console.error('Error fetching tracks:', err);
+  } finally {
+    songsLoading.value = false;
+  }
+};
+
+const fetchProjects = async () => {
+  try {
+    // Fetch repositories
+    const reposResponse = await fetch('https://api.github.com/users/lostf1sh/repos');
+    const reposData = await reposResponse.json();
+    repos.value = reposData.sort((a, b) => b.stargazers_count - a.stargazers_count);
+
+    // Fetch latest commit
+    const commitsResponse = await fetch('https://api.github.com/repos/lostf1sh/website/commits');
+    const commitsData = await commitsResponse.json();
+    if (commitsData && commitsData[0]) {
+      latestCommit.value = {
+        repo: 'lostf1sh/website',
+        message: commitsData[0].commit.message,
+        url: commitsData[0].html_url,
+        date: new Date(commitsData[0].commit.author.date).toLocaleDateString()
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+  }
+};
+
+onMounted(() => {
+  // Fetch all data
+  fetchProjects();
+  fetchSongs();
+
+  // Set up songs update interval
+  updateInterval = setInterval(fetchSongs, 30000);
+});
+
+onBeforeUnmount(() => {
+  if (updateInterval) {
+    clearInterval(updateInterval);
   }
 });
 </script>
 
 <template>
-  <div class="max-w-screen-lg mx-auto px-4 py-2 md:p-5 relative">
+  <div class="max-w-screen-lg mx-auto px-4 py-4 md:p-6 relative min-h-screen">
     <!-- Decorative elements -->
-    <div class="z-0 absolute -mt-10 right-0 text-[6rem] md:text-[10rem] opacity-10 select-none animate-float hidden sm:block">🔥</div>
-    <div class="z-0 absolute top-1/2 left-0 text-[5rem] md:text-[8rem] opacity-10 select-none animate-float-delayed hidden sm:block">⚡</div>
-    
+    <div class="z-0 absolute -mt-10 right-0 text-[6rem] md:text-[10rem] opacity-10 select-none hidden sm:block">🔥</div>
+    <div class="z-0 absolute top-1/2 left-0 text-[5rem] md:text-[8rem] opacity-10 select-none hidden sm:block">⚡</div>
+    <div class="z-0 absolute top-1/4 right-1/4 text-[4rem] md:text-[6rem] opacity-5 select-none hidden lg:block">✨</div>
+
     <!-- Header Section -->
-    <div class="relative mb-8 md:mb-16 mt-4 md:mt-8">
-      <div class="font-sans font-black text-4xl md:text-6xl text-catppuccin-mauve animate-fade-in mb-4 md:mb-8">
-        f1sh.pics
-      </div>
-      <!-- Bio section with personal description -->
-      <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-4 md:p-8 animate-fade-in" style="animation-delay: 0.1s;">
-        <p class="text-catppuccin-text text-base md:text-lg leading-relaxed">
-          A developer who loves building things and solving problems. 
-          When I'm not coding, I enjoy playing table tennis and experimenting in the kitchen.
-        </p>
-      </div>
+    <div class="relative mb-6 md:mb-8 mt-6 md:mt-10">
+      <!-- Hero Section -->
+      <div class="mb-10">
+        <!-- Title with Profile -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
+          <div class="flex items-center gap-4">
+            <div
+              class="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-catppuccin-surface flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-catppuccin-mauve/30 shadow-lg">
+              <img v-if="!isLoading && discordUser?.avatar"
+                :src="`https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.${discordUser.avatar.startsWith('a_') ? 'gif' : 'png'}`"
+                alt="Discord Avatar" class="w-full h-full object-cover" />
+              <font-awesome-icon v-else :icon="['fab', 'discord']" class="text-2xl md:text-3xl text-catppuccin-blue" />
+            </div>
+            <div class="flex-1">
+              <p class="text-base sm:text-lg md:text-xl text-catppuccin-text font-medium mb-1">
+                <span class="text-catppuccin-blue">duhan</span> <span class="text-catppuccin-subtle">(<span
+                    class="text-catppuccin-green">aka moli</span>)</span>
+              </p>
+              <h1 class="font-sans text-2xl sm:text-3xl md:text-4xl font-black text-catppuccin-text">
+                <span class="text-catppuccin-mauve">f1sh</span><span class="text-catppuccin-subtle">.pics</span>
+              </h1>
+            </div>
+          </div>
 
-      <div class="mt-4 md:mt-6 animate-slide-up" style="animation-delay: 0.2s;">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          <div class="lanyard-card flex items-center gap-3 p-3 rounded-lg text-sm bg-catppuccin-surface/30 border-catppuccin-overlay border-[0.5px] hover:bg-catppuccin-surface hover:border-catppuccin-text transition-all duration-300">
-            <font-awesome-icon :icon="['fab', 'spotify']" class="text-2xl text-catppuccin-green w-6 h-6" />
-            <div class="text-sm font-sans">
-              <div v-if="spotify" class="text-catppuccin-text">
-                Listening to 
-                <a :href="`https://open.spotify.com/track/${spotify.track_id}`" target="_blank" class="underline hover:text-catppuccin-green">
-                  {{ spotify.song }} - {{ spotify.artist }}
-                </a>.
+          <!-- Social Links -->
+          <div class="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
+            <a href="https://github.com/lostf1sh" target="_blank"
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-mauve hover-glow transition-all duration-200 hover:scale-110 transform">
+              <font-awesome-icon :icon="['fab', 'github']" class="text-lg sm:text-xl" />
+            </a>
+            <a href="https://www.instagram.com/lxstf1sh" target="_blank"
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-pink hover-glow transition-all duration-200 hover:scale-110 transform">
+              <font-awesome-icon :icon="['fab', 'instagram']" class="text-lg sm:text-xl" />
+            </a>
+            <a href="https://discord.com/user/470904884946796544" target="_blank"
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-blue hover-glow transition-all duration-200 hover:scale-110 transform">
+              <font-awesome-icon :icon="['fab', 'discord']" class="text-lg sm:text-xl" />
+            </a>
+            <a href="https://open.spotify.com/user/31q6jft6qtkzisve7zu2o2mytyry?si=1c9f27a30d25435b" target="_blank"
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-green hover-glow transition-all duration-200 hover:scale-110 transform">
+              <font-awesome-icon :icon="['fab', 'spotify']" class="text-lg sm:text-xl" />
+            </a>
+          </div>
+        </div>
+
+        <!-- Bio & Status Grid -->
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Bio Card -->
+          <div class="md:col-span-2 glass rounded-2xl p-6 hover-glow transition-all duration-300">
+            <p class="text-base md:text-lg text-catppuccin-gray leading-relaxed mb-4">
+              <span class="text-catppuccin-yellow font-semibold">a developer who loves</span>, <span
+                class="text-catppuccin-pink font-semibold">building things and solving problems</span> I enjoy playing
+              table tennis and experimenting in the kitchen.
+            </p>
+
+            <!-- Status Indicators -->
+            <div class="space-y-3">
+              <div class="flex items-center gap-3 text-sm">
+                <font-awesome-icon :icon="['fab', 'discord']" class="text-catppuccin-blue" />
+                <span v-if="!isLoading && discordUser" class="text-catppuccin-text">
+                  <span class="font-medium text-catppuccin-text">{{ discordUser.username }}</span>
+                  <span :class="discordStatusColor" class="ml-1">({{ discordStatus }})</span>
+                </span>
+                <span v-else class="text-catppuccin-subtle">Discord loading...</span>
               </div>
-              <div v-else class="text-catppuccin-subtle">
-                Not listening to anything.
+
+              <div class="flex items-center gap-3 text-sm">
+                <font-awesome-icon :icon="['fab', 'spotify']"
+                  :class="spotify ? 'text-catppuccin-green' : 'text-catppuccin-subtle'" />
+                <span v-if="!isLoading && spotify" class="text-catppuccin-text">
+                  <span class="text-catppuccin-green font-medium">{{ spotify.song }}</span>
+                  <span class="text-catppuccin-gray"> by {{ spotify.artist }}</span>
+                </span>
+                <span v-else-if="!isLoading" class="text-catppuccin-subtle">
+                  not listening to music
+                </span>
+                <span v-else class="text-catppuccin-subtle">Spotify loading...</span>
+              </div>
+
+              <div v-if="!isLoading && vscodeActivity && vscodeStatus && vscodeStatus.details"
+                class="flex items-center gap-3 text-sm">
+                <font-awesome-icon :icon="['fas', 'code']" class="text-catppuccin-blue" />
+                <span class="text-catppuccin-text">
+                  coding <span class="text-catppuccin-blue font-medium">{{ vscodeStatus.details }}</span>
+                  <span v-if="vscodeStatus.state" class="text-catppuccin-gray"> in {{ vscodeStatus.state }}</span>
+                </span>
               </div>
             </div>
           </div>
 
-          <div class="lanyard-card flex items-center gap-3 p-3 rounded-lg text-sm bg-catppuccin-surface/30 border-catppuccin-overlay border-[0.5px] hover:bg-catppuccin-surface hover:border-catppuccin-text transition-all duration-300">
-            <font-awesome-icon :icon="['fab', 'discord']" class="text-2xl w-6 h-6" :class="discordStatusColor" />
-            <div class="text-sm font-sans">
-              <div :class="discordStatusColor">
-                {{ discordStatus.charAt(0).toUpperCase() + discordStatus.slice(1) }} on Discord.
-              </div>
-            </div>
-          </div>
-
-          <div v-if="vscodeActivity" class="lanyard-card flex items-center gap-3 p-3 rounded-lg text-sm bg-catppuccin-surface/30 border-catppuccin-overlay border-[0.5px] hover:bg-catppuccin-surface hover:border-catppuccin-text transition-all duration-300">
-            <font-awesome-icon :icon="['fas', 'code']" class="text-2xl w-6 h-6 text-catppuccin-blue" /> 
-            <div class="text-sm text-catppuccin-text font-sans">
-              <div v-if="typeof vscodeStatus === 'string' && vscodeStatus === 'idling'">
-                Currently idling.
-              </div>
-              <div v-else-if="vscodeStatus && vscodeStatus.details">
-                <strong>{{ vscodeStatus.details }}</strong>
-                <span v-if="vscodeStatus.state"> in {{ vscodeStatus.state }}</span>.
-              </div>
+          <!-- Tech Stack Card -->
+          <div class="glass rounded-2xl p-6 hover-glow transition-all duration-300">
+            <h3 class="text-lg font-bold text-catppuccin-mauve mb-4">uses/</h3>
+            <div class="grid grid-cols-4 gap-2">
+              <img src="https://skillicons.dev/icons?i=linux"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=git"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=vscode"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=github"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=python"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=javascript"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=typescript"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=vue"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=react"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=svelte"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=nextjs"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+              <img src="https://skillicons.dev/icons?i=tailwind"
+                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="flex flex-wrap gap-3 md:gap-6 mt-6 md:mt-8 animate-fade-in" style="animation-delay: 0.3s;">
-        <a 
-          href="https://github.com/lostf1sh/" 
-          target="_blank" 
-          class="group flex items-center gap-3 p-3 rounded-lg bg-[#181825]/[.3] border-[#585b70] border-[0.5px] hover:bg-[#313244] transition-all duration-300"
-        >
-          <font-awesome-icon :icon="['fab', 'github']" class="text-2xl text-catppuccin-subtle group-hover:text-catppuccin-mauve transition-colors duration-300" />
-          <span class="text-catppuccin-text group-hover:text-catppuccin-mauve transition-colors duration-300">
-            GitHub
-          </span>
-        </a>
-        <a 
-          href="https://www.instagram.com/lxstf1sh" 
-          target="_blank" 
-          class="group flex items-center gap-3 p-3 rounded-lg bg-[#181825]/[.3] border-[#585b70] border-[0.5px] hover:bg-[#313244] transition-all duration-300"
-        >
-          <font-awesome-icon :icon="['fab', 'instagram']" class="text-2xl text-catppuccin-subtle group-hover:text-catppuccin-pink transition-colors duration-300" />
-          <span class="text-catppuccin-text group-hover:text-catppuccin-pink transition-colors duration-300">
-            Instagram
-          </span>
-        </a>
-        <a 
-          href="https://discord.com/user/470904884946796544" 
-          target="_blank" 
-          class="group flex items-center gap-3 p-3 rounded-lg bg-[#181825]/[.3] border-[#585b70] border-[0.5px] hover:bg-[#313244] transition-all duration-300"
-        >
-          <font-awesome-icon :icon="['fab', 'discord']" class="text-2xl text-catppuccin-subtle group-hover:text-catppuccin-blue transition-colors duration-300" />
-          <span class="text-catppuccin-text group-hover:text-catppuccin-blue transition-colors duration-300">
-            Discord
-          </span>
-        </a>
       </div>
     </div>
 
-    <!-- Uses Section -->
-    <div class="relative mb-8 md:mb-16">
-      <div class="mb-4 md:mb-6">
-        <h2 class="text-2xl md:text-3xl font-black text-catppuccin-mauve mb-2 md:mb-4 animate-fade-in">tech stack</h2>
-        <p class="text-catppuccin-text text-sm md:text-base mb-4 md:mb-6 max-w-2xl animate-fade-in" style="animation-delay: 0.1s;">
-          Here's what I use to build and create. A carefully curated set of tools and technologies that help me bring ideas to life.
-        </p>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 animate-fade-in" style="animation-delay: 0.2s;">
-        <!-- Development Tools -->
-        <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-4 md:p-6 hover:bg-[#313244] transition-all duration-300">
-          <h3 class="text-lg md:text-xl font-bold text-catppuccin-blue mb-3 md:mb-4 flex items-center gap-2">
-            <font-awesome-icon :icon="['fas', 'code']" />
-            Development Tools
-          </h3>
-          <img src="https://skillicons.dev/icons?i=linux,git,vscode,github,gitlab,gcp,firebase" class="select-none mb-2 max-w-full" />
-        </div>
+    <!-- Projects & Songs Side by Side -->
+    <div class="grid md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12">
+      <!-- Projects Section -->
+      <div class="relative">
+        <h2 class="text-lg md:text-xl font-black text-catppuccin-mauve mb-3 animate-fade-in">projects/</h2>
 
-        <!-- Technologies -->
-        <div class="bg-[#181825]/[.3] border-[#585b70] border-[0.5px] rounded-lg p-4 md:p-6 hover:bg-[#313244] transition-all duration-300">
-          <h3 class="text-lg md:text-xl font-bold text-catppuccin-green mb-3 md:mb-4 flex items-center gap-2">
-            <font-awesome-icon :icon="['fas', 'laptop-code']" />
-            Technologies
-          </h3>
-          <img src="https://skillicons.dev/icons?i=python,tailwind,javascript,typescript,vue,react,svelte" class="select-none max-w-full" />
+        <div class="space-y-2">
+          <div v-if="!repos.length" class="text-center text-catppuccin-subtle py-8">
+            <font-awesome-icon :icon="['fas', 'code']" class="text-2xl mb-2 opacity-50" />
+            <p class="text-xs">Projects could not be retrieved.</p>
+          </div>
+          <a v-for="repo in repos.slice(0, 6)" :key="repo.id" :href="repo.html_url" target="_blank"
+            class="flex items-center gap-3 p-3 glass rounded-lg hover-glow transition-all duration-200 cursor-pointer transform hover:scale-105 group">
+            <div
+              class="w-8 h-8 rounded-md bg-catppuccin-surface flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <img v-if="repo.language" 
+                :src="getLanguageIcon(repo.language)"
+                :alt="repo.language"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                @error="$event.target.src = repo.owner.avatar_url">
+              <img v-else :src="repo.owner.avatar_url"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-catppuccin-text truncate text-sm group-hover:text-catppuccin-mauve transition-colors duration-200"
+                :title="repo.name">
+                {{ repo.name }}
+              </p>
+              <p class="text-catppuccin-gray truncate text-xs" :title="repo.description">
+                {{ repo.description || 'No description' }}
+              </p>
+            </div>
+            <div class="flex items-center gap-2 text-xs flex-shrink-0">
+              <div class="flex items-center gap-1 text-catppuccin-yellow">
+                <font-awesome-icon :icon="['fas', 'star']" />
+                {{ repo.stargazers_count }}
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Songs Section -->
+      <div class="relative">
+        <h2 class="text-lg md:text-xl font-black text-catppuccin-mauve mb-3 animate-fade-in">songs/</h2>
+
+        <div class="space-y-2">
+          <!-- Loading State - Show skeleton cards -->
+          <template v-if="songsLoading">
+            <div v-for="i in 6" :key="`loading-${i}`" class="flex items-center gap-3 p-3 glass rounded-lg animate-pulse">
+              <div class="w-8 h-8 rounded-md bg-catppuccin-surface flex items-center justify-center flex-shrink-0">
+                <font-awesome-icon :icon="['fas', 'music']" class="text-sm text-catppuccin-subtle opacity-50" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="h-4 bg-catppuccin-surface rounded mb-1 w-3/4"></div>
+                <div class="h-3 bg-catppuccin-surface rounded w-1/2"></div>
+              </div>
+              <div class="w-12 h-3 bg-catppuccin-surface rounded"></div>
+            </div>
+          </template>
+          
+          <!-- Error State -->
+          <div v-else-if="songsError" class="text-center text-catppuccin-red py-8">
+            <font-awesome-icon :icon="['fas', 'music']" class="text-2xl mb-2 opacity-50" />
+            <p class="text-xs">{{ songsError }}</p>
+          </div>
+          
+          <!-- Empty State -->
+          <div v-else-if="!consolidatedTracks.length && !currentTrack" class="text-center text-catppuccin-subtle py-8">
+            <font-awesome-icon :icon="['fas', 'music']" class="text-2xl mb-2 opacity-50" />
+            <p class="text-xs">No recent tracks found.</p>
+          </div>
+
+          <!-- Loaded Content -->
+          <template v-else>
+            <!-- Now Playing Track (if exists) -->
+            <a v-if="currentTrack" :href="currentTrack.url" target="_blank"
+              class="flex items-center gap-3 p-3 glass rounded-lg hover-glow transition-all duration-200 cursor-pointer transform hover:scale-105 group border border-catppuccin-green/30">
+              <div
+                class="w-8 h-8 rounded-md overflow-hidden bg-catppuccin-surface flex items-center justify-center flex-shrink-0">
+                <img :src="currentTrack.image[1]['#text']" alt="track image"
+                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  @error="handleImageError(currentTrack.name)" :class="{ 'hidden': imageErrors[currentTrack.name] }" />
+                <font-awesome-icon v-if="imageErrors[currentTrack.name]" :icon="['fas', 'compact-disc']"
+                  class="text-sm text-catppuccin-subtle animate-spin-slow" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-catppuccin-text truncate text-sm group-hover:text-catppuccin-green transition-colors duration-200"
+                  :title="currentTrack.name">
+                  {{ currentTrack.name }}
+                </p>
+                <p class="text-catppuccin-gray truncate text-xs" :title="currentTrack.artist['#text']">{{
+                  currentTrack.artist['#text'] }}</p>
+              </div>
+              <div class="flex items-center gap-1 text-catppuccin-green text-xs flex-shrink-0">
+                <div class="w-1.5 h-1.5 rounded-full bg-catppuccin-green animate-pulse"></div>
+                Now
+              </div>
+            </a>
+
+            <!-- Recent Tracks -->
+            <a v-for="track in consolidatedTracks.slice(0, currentTrack ? 5 : 6)"
+              :key="`${track.name}-${track.artist['#text']}-${track.date}`" :href="track.url" target="_blank"
+              class="flex items-center gap-3 p-3 glass rounded-lg hover-glow transition-all duration-200 cursor-pointer transform hover:scale-105 group">
+              <div
+                class="w-8 h-8 rounded-md overflow-hidden bg-catppuccin-surface flex items-center justify-center flex-shrink-0">
+                <img :src="track.image[1]['#text']" alt="track image"
+                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  @error="handleImageError(track.name)" :class="{ 'hidden': imageErrors[track.name] }" />
+                <font-awesome-icon v-if="imageErrors[track.name]" :icon="['fas', 'compact-disc']"
+                  class="text-sm text-catppuccin-subtle animate-spin-slow" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-catppuccin-text truncate text-sm" :title="track.name">
+                  {{ track.name }}
+                  <span v-if="track.playcount > 1" class="text-catppuccin-green text-xs ml-1">{{ track.playcount
+                  }}x</span>
+                </p>
+                <p class="text-catppuccin-gray truncate text-xs" :title="track.artist['#text']">{{ track.artist['#text']
+                }}</p>
+              </div>
+              <div class="text-xs text-catppuccin-subtle flex-shrink-0">
+                {{ formatDate(track.date) }}
+              </div>
+            </a>
+          </template>
         </div>
       </div>
     </div>
+
+
+
   </div>
 </template>
-
-<style scoped>
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-delayed {
-  animation: float 6s ease-in-out infinite;
-  animation-delay: 3s;
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-</style>
