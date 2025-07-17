@@ -24,26 +24,26 @@ const vscodeStatus = computed(() => {
   };
 });
 
+const profilePhotoUrl = computed(() => {
+  if (!isLoading.value && discordUser.value?.avatar) {
+    const { id, avatar } = discordUser.value;
+    const extension = avatar.startsWith('a_') ? 'gif' : 'png';
+    return `https://cdn.discordapp.com/avatars/${id}/${avatar}.${extension}`;
+  }
+  return null;
+});
+
 
 const repos = ref([]);
-const latestCommit = ref(null);
 
-// Songs data
 const allTracks = ref([]);
 const songsLoading = ref(true);
 const songsError = ref(null);
 const imageErrors = ref({});
 let updateInterval = null;
 
-// Projects functions
-const truncateMessage = (message, limit = 150) => {
-  if (!message) return '';
-  const cleanMessage = message.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-  if (cleanMessage.length <= limit) return cleanMessage;
-  return cleanMessage.substring(0, limit) + '...';
-};
 
-// Songs functions
+
 const handleImageError = (trackName) => {
   imageErrors.value[trackName] = true;
 };
@@ -99,13 +99,9 @@ const formatDate = (dateString) => {
   });
 };
 
-const goToTrack = (url) => {
-  window.open(url, '_blank');
-};
 
-// Language icon mapping function
+
 const getLanguageIcon = (language) => {
-  // Languages not supported by skillicons - use devicons
   const devIcons = {
     'QML': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/qt/qt-original.svg',
     'CMake': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cmake/cmake-original.svg',
@@ -171,18 +167,6 @@ const fetchProjects = async () => {
     const reposResponse = await fetch('https://api.github.com/users/lostf1sh/repos');
     const reposData = await reposResponse.json();
     repos.value = reposData.sort((a, b) => b.stargazers_count - a.stargazers_count);
-
-    // Fetch latest commit
-    const commitsResponse = await fetch('https://api.github.com/repos/lostf1sh/website/commits');
-    const commitsData = await commitsResponse.json();
-    if (commitsData && commitsData[0]) {
-      latestCommit.value = {
-        repo: 'lostf1sh/website',
-        message: commitsData[0].commit.message,
-        url: commitsData[0].html_url,
-        date: new Date(commitsData[0].commit.author.date).toLocaleDateString()
-      };
-    }
   } catch (error) {
     console.error('Error fetching projects:', error);
   }
@@ -205,7 +189,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="max-w-screen-lg mx-auto px-4 py-4 md:p-6 relative min-h-screen">
+  <div class="w-full max-w-screen-lg mx-auto px-3 sm:px-4 py-4 md:p-6 relative min-h-screen overflow-x-hidden">
     <!-- Decorative elements -->
     <div class="z-0 absolute -mt-10 right-0 text-[6rem] md:text-[10rem] opacity-10 select-none hidden sm:block">🔥</div>
     <div class="z-0 absolute top-1/2 left-0 text-[5rem] md:text-[8rem] opacity-10 select-none hidden sm:block">⚡</div>
@@ -220,10 +204,10 @@ onBeforeUnmount(() => {
           <div class="flex items-center gap-4">
             <div
               class="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-catppuccin-surface flex items-center justify-center overflow-hidden flex-shrink-0 ring-2 ring-catppuccin-mauve/30 shadow-lg">
-              <img v-if="!isLoading && discordUser?.avatar"
-                :src="`https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.${discordUser.avatar.startsWith('a_') ? 'gif' : 'png'}`"
-                alt="Discord Avatar" class="w-full h-full object-cover" />
-              <font-awesome-icon v-else :icon="['fab', 'discord']" class="text-2xl md:text-3xl text-catppuccin-blue" />
+              <img v-if="profilePhotoUrl"
+                :src="profilePhotoUrl"
+                alt="Profile Avatar" class="w-full h-full object-cover" />
+              <font-awesome-icon v-else :icon="['fas', 'user']" class="text-2xl md:text-3xl text-catppuccin-blue" />
             </div>
             <div class="flex-1">
               <p class="text-base sm:text-lg md:text-xl text-catppuccin-text font-medium mb-1">
@@ -239,28 +223,28 @@ onBeforeUnmount(() => {
           <!-- Social Links -->
           <div class="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
             <a href="https://github.com/lostf1sh" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-mauve hover-glow transition-all duration-200 hover:scale-110 transform">
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-mauve transition-colors">
               <font-awesome-icon :icon="['fab', 'github']" class="text-lg sm:text-xl" />
             </a>
             <a href="https://www.instagram.com/lxstf1sh" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-pink hover-glow transition-all duration-200 hover:scale-110 transform">
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-pink transition-colors">
               <font-awesome-icon :icon="['fab', 'instagram']" class="text-lg sm:text-xl" />
             </a>
             <a href="https://discord.com/user/470904884946796544" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-blue hover-glow transition-all duration-200 hover:scale-110 transform">
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-blue transition-colors">
               <font-awesome-icon :icon="['fab', 'discord']" class="text-lg sm:text-xl" />
             </a>
             <a href="https://open.spotify.com/user/31q6jft6qtkzisve7zu2o2mytyry?si=1c9f27a30d25435b" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-green hover-glow transition-all duration-200 hover:scale-110 transform">
+              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-green transition-colors">
               <font-awesome-icon :icon="['fab', 'spotify']" class="text-lg sm:text-xl" />
             </a>
           </div>
         </div>
 
         <!-- Bio & Status Grid -->
-        <div class="grid md:grid-cols-3 gap-6">
+        <div class="grid lg:grid-cols-3 gap-4 sm:gap-6">
           <!-- Bio Card -->
-          <div class="md:col-span-2 glass rounded-2xl p-6 hover-glow transition-all duration-300">
+          <div class="lg:col-span-2 glass rounded-2xl p-6 hover-glow transition-shadow">
             <p class="text-base md:text-lg text-catppuccin-gray leading-relaxed mb-4">
               <span class="text-catppuccin-yellow font-semibold">a developer who loves</span>, <span
                 class="text-catppuccin-pink font-semibold">building things and solving problems</span> I enjoy playing
@@ -303,33 +287,33 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Tech Stack Card -->
-          <div class="glass rounded-2xl p-6 hover-glow transition-all duration-300">
+          <div class="glass rounded-2xl p-6 hover-glow transition-shadow">
             <h3 class="text-lg font-bold text-catppuccin-mauve mb-4">uses/</h3>
             <div class="grid grid-cols-4 gap-2">
               <img src="https://skillicons.dev/icons?i=linux"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=git"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=vscode"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=github"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=python"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=javascript"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=typescript"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=vue"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=react"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=svelte"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=nextjs"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
               <img src="https://skillicons.dev/icons?i=tailwind"
-                class="w-8 h-8 hover:scale-110 transition-transform duration-200" />
+                class="w-8 h-8 hover:scale-110 transition-transform" />
             </div>
           </div>
         </div>
@@ -337,7 +321,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Projects & Songs Side by Side -->
-    <div class="grid md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12">
+    <div class="flex flex-col lg:grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-8 md:mb-12">
       <!-- Projects Section -->
       <div class="relative">
         <h2 class="text-lg md:text-xl font-black text-catppuccin-mauve mb-3 animate-fade-in">projects/</h2>
@@ -348,19 +332,19 @@ onBeforeUnmount(() => {
             <p class="text-xs">Projects could not be retrieved.</p>
           </div>
           <a v-for="repo in repos.slice(0, 6)" :key="repo.id" :href="repo.html_url" target="_blank"
-            class="flex items-center gap-3 p-3 glass rounded-lg hover-glow transition-all duration-200 cursor-pointer transform hover:scale-105 group">
+            class="flex items-center gap-3 p-3 glass rounded-lg hover-glow transition-shadow cursor-pointer group">
             <div
               class="w-8 h-8 rounded-md bg-catppuccin-surface flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img v-if="repo.language" 
                 :src="getLanguageIcon(repo.language)"
                 :alt="repo.language"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                class="w-full h-full object-cover transition-transform group-hover:scale-110"
                 @error="$event.target.src = repo.owner.avatar_url">
               <img v-else :src="repo.owner.avatar_url"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                class="w-full h-full object-cover transition-transform group-hover:scale-110">
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-semibold text-catppuccin-text truncate text-sm group-hover:text-catppuccin-mauve transition-colors duration-200"
+              <p class="font-semibold text-catppuccin-text truncate text-sm group-hover:text-catppuccin-mauve transition-colors"
                 :title="repo.name">
                 {{ repo.name }}
               </p>

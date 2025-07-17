@@ -40,13 +40,13 @@ export default {
     },
     extend: {
       animation: {
-        'fade-in': 'fadeIn 0.4s ease-out',
-        'fade-in-delayed': 'fadeIn 0.4s ease-out 0.1s both',
-        'slide-up': 'slideUp 0.4s ease-out',
-        'scale-in': 'scaleIn 0.3s ease-out',
-        'bounce-subtle': 'bounceSubtle 0.4s ease-out',
-        'spin-slow': 'spin 4s linear infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'fade-in-delayed': 'fadeIn 0.3s ease-out 0.1s both',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'scale-in': 'scaleIn 0.2s ease-out',
+        'bounce-subtle': 'bounceSubtle 0.3s ease-out',
+        'spin-slow': 'spin 3s linear infinite',
+        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         fadeIn: {

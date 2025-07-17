@@ -1,6 +1,5 @@
-import { ref, reactive } from 'vue';
+import { reactive } from 'vue';
 
-// Global reactive state that persists across page navigation
 const lanyardData = reactive({
   discordUser: null,
   spotify: null,
@@ -8,13 +7,8 @@ const lanyardData = reactive({
   discordStatusColor: 'text-catppuccin-subtle',
   vscodeActivity: null,
   isConnected: false,
-  isLoading: true,
-  lastUpdated: null
+  isLoading: true
 });
-
-// Cache key for localStorage
-const CACHE_KEY = 'lanyard_cache';
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 class LanyardService {
   constructor() {
@@ -23,7 +17,7 @@ class LanyardService {
     this.reconnectTimeout = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 1000; // Start with 1 second
+    this.reconnectDelay = 1000;
     this.userId = '470904884946796544';
     this.isConnecting = false;
   }
@@ -46,7 +40,6 @@ class LanyardService {
         this.reconnectDelay = 1000;
         lanyardData.isConnected = true;
 
-        // Subscribe to user updates
         this.ws.send(JSON.stringify({
           op: 2,
           d: { subscribe_to_id: this.userId }
@@ -72,7 +65,6 @@ class LanyardService {
           this.heartbeatInterval = null;
         }
 
-        // Only attempt reconnection if it wasn't a manual close
         if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.scheduleReconnect();
         }
@@ -94,11 +86,11 @@ class LanyardService {
 
   handleMessage(message) {
     switch (message.op) {
-      case 1: // Hello - start heartbeat
+      case 1:
         this.startHeartbeat(message.d.heartbeat_interval);
         break;
 
-      case 0: // Event
+      case 0:
         if (message.t === 'INIT_STATE' || message.t === 'PRESENCE_UPDATE') {
           this.updatePresenceData(message.d);
           lanyardData.isLoading = false;
@@ -192,22 +184,11 @@ class LanyardService {
     lanyardData.isConnected = false;
   }
 
-  // Get current data
-  getData() {
-    return lanyardData;
-  }
 
-  // Force reconnect
-  reconnect() {
-    this.disconnect();
-    setTimeout(() => this.connect(), 100);
-  }
 }
 
-// Create singleton instance
 const lanyardService = new LanyardService();
 
-// Auto-connect when service is imported
 lanyardService.connect();
 
 export { lanyardService, lanyardData };
