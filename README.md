@@ -1,6 +1,6 @@
 ![](./public/screenshot.png)
 
-# moli.lat
+# f1sh.pics
 🌐 My personal website.
 
 ## Getting Started
