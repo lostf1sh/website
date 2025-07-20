@@ -114,8 +114,6 @@ const getLanguageIcon = (language) => {
   if (devIcons[language]) {
     return devIcons[language];
   }
-
-  // Skillicons mapping
   const languageMap = {
     'JavaScript': 'js',
     'TypeScript': 'ts',
@@ -163,7 +161,6 @@ const fetchSongs = async () => {
 
 const fetchProjects = async () => {
   try {
-    // Fetch repositories
     const reposResponse = await fetch('https://api.github.com/users/lostf1sh/repos');
     const reposData = await reposResponse.json();
     repos.value = reposData.sort((a, b) => b.stargazers_count - a.stargazers_count);
@@ -173,11 +170,8 @@ const fetchProjects = async () => {
 };
 
 onMounted(() => {
-  // Fetch all data
   fetchProjects();
   fetchSongs();
-
-  // Set up songs update interval
   updateInterval = setInterval(fetchSongs, 30000);
 });
 
@@ -223,20 +217,20 @@ onBeforeUnmount(() => {
           <!-- Social Links -->
           <div class="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
             <a href="https://github.com/lostf1sh" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-mauve transition-colors">
-              <font-awesome-icon :icon="['fab', 'github']" class="text-lg sm:text-xl" />
+              class="w-12 h-12 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-mauve transition-colors flex items-center justify-center">
+              <font-awesome-icon :icon="['fab', 'github']" class="text-xl" />
             </a>
             <a href="https://www.instagram.com/lxstf1sh" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-pink transition-colors">
-              <font-awesome-icon :icon="['fab', 'instagram']" class="text-lg sm:text-xl" />
+              class="w-12 h-12 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-pink transition-colors flex items-center justify-center">
+              <font-awesome-icon :icon="['fab', 'instagram']" class="text-xl" />
             </a>
             <a href="https://discord.com/user/470904884946796544" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-blue transition-colors">
-              <font-awesome-icon :icon="['fab', 'discord']" class="text-lg sm:text-xl" />
+              class="w-12 h-12 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-blue transition-colors flex items-center justify-center">
+              <font-awesome-icon :icon="['fab', 'discord']" class="text-xl" />
             </a>
             <a href="https://open.spotify.com/user/31q6jft6qtkzisve7zu2o2mytyry?si=1c9f27a30d25435b" target="_blank"
-              class="p-2.5 sm:p-3 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-green transition-colors">
-              <font-awesome-icon :icon="['fab', 'spotify']" class="text-lg sm:text-xl" />
+              class="w-12 h-12 glass rounded-xl text-catppuccin-subtle hover:text-catppuccin-green transition-colors flex items-center justify-center">
+              <font-awesome-icon :icon="['fab', 'spotify']" class="text-xl" />
             </a>
           </div>
         </div>
@@ -246,9 +240,9 @@ onBeforeUnmount(() => {
           <!-- Bio Card -->
           <div class="lg:col-span-2 glass rounded-2xl p-6 hover-glow transition-shadow">
             <p class="text-base md:text-lg text-catppuccin-gray leading-relaxed mb-4">
-              <span class="text-catppuccin-yellow font-semibold">a developer who loves</span>, <span
-                class="text-catppuccin-pink font-semibold">building things and solving problems</span> I enjoy playing
-              table tennis and experimenting in the kitchen.
+              <span class="text-catppuccin-yellow font-semibold">Junior developer</span> with a passion for 
+              <span class="text-catppuccin-pink font-semibold">building things nobody asked for</span>. 
+              When I'm not coding, you can find me playing table tennis or experimenting with new recipes in the kitchen.
             </p>
 
             <!-- Status Indicators -->
@@ -423,7 +417,7 @@ onBeforeUnmount(() => {
             <!-- Recent Tracks -->
             <a v-for="track in consolidatedTracks.slice(0, currentTrack ? 5 : 6)"
               :key="`${track.name}-${track.artist['#text']}-${track.date}`" :href="track.url" target="_blank"
-              class="flex items-center gap-3 p-3 glass rounded-lg hover-glow transition-all duration-200 cursor-pointer transform hover:scale-105 group">
+              class="flex items-center gap-3 p-3 glass rounded-lg hover-glow transition-shadow cursor-pointer group">
               <div
                 class="w-8 h-8 rounded-md overflow-hidden bg-catppuccin-surface flex items-center justify-center flex-shrink-0">
                 <img :src="track.image[1]['#text']" alt="track image"
@@ -433,7 +427,7 @@ onBeforeUnmount(() => {
                   class="text-sm text-catppuccin-subtle animate-spin-slow" />
               </div>
               <div class="flex-1 min-w-0">
-                <p class="font-semibold text-catppuccin-text truncate text-sm" :title="track.name">
+                <p class="font-semibold text-catppuccin-text truncate text-sm group-hover:text-catppuccin-mauve transition-colors" :title="track.name">
                   {{ track.name }}
                   <span v-if="track.playcount > 1" class="text-catppuccin-green text-xs ml-1">{{ track.playcount
                   }}x</span>
