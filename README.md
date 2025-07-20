@@ -14,7 +14,7 @@ git clone https://github.com/lostf1sh/website
 
 2. Navigate to the project folder:
 ```bash
-cd lostf1sh.github.io
+cd website
 ```
 
 3. Install the dependencies:
