@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
                     class="text-catppuccin-green">aka moli</span>)</span>
               </p>
               <h1 class="font-sans text-2xl sm:text-3xl md:text-4xl font-black text-catppuccin-text">
-                <span class="text-catppuccin-mauve">f1sh</span><span class="text-catppuccin-subtle">.pics</span>
+                <span class="text-catppuccin-mauve">f1sh</span><span class="text-catppuccin-subtle">.dev</span>
               </h1>
             </div>
           </div>
