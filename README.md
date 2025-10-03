@@ -1,30 +1,25 @@
-![](./public/screenshot.png)
+# f1sh.dev
 
-# f1sh.pics
-🌐 My personal website.
+minimalist personal website with terminal aesthetic.
 
-## Getting Started
-You can get started by cloning the project to your local machine. Make sure you have [Node.js](https://nodejs.org/) installed before you begin.
+## tech stack
 
-1. Clone the repository:
+vue 3 | tailwind | vite | catppuccin mocha
+
+## setup
 
 ```bash
 git clone https://github.com/lostf1sh/website
-```
-
-2. Navigate to the project folder:
-```bash
 cd website
-```
-
-3. Install the dependencies:
-```bash
-npm ci
-```
-
-4. Start the development server:
-```bash
+npm install
 npm run dev
 ```
 
-Done! You have successfully run the website locally.
+## features
+
+- real-time discord/spotify/vscode status via lanyard
+- github projects from api
+- last.fm recent tracks
+- monospace terminal design
+
+live at [f1sh.dev](https://f1sh.dev)
