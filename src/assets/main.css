@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 
 @import './base.css';
 
@@ -9,16 +9,19 @@ html {
 }
 
 body {
-  background: linear-gradient(135deg, #1e1e2e 0%, #181825 100%);
+  background: #1e1e2e;
   min-height: 100vh;
+  font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 ::selection {
-  background: theme('colors.catppuccin-surface');
-  color: theme('colors.catppuccin-text');
+  background: theme('colors.catppuccin-mauve');
+  color: theme('colors.catppuccin-base');
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - minimalist */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -29,66 +32,26 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: theme('colors.catppuccin-surface');
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: theme('colors.catppuccin-overlay');
 }
 
-/* Optimized transitions for Firefox performance */
-a, button, [role="button"], .transition-colors {
-  transition-property: color, background-color, border-color, opacity;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+/* Minimal transitions */
+a {
+  transition: color 0.15s ease;
+  text-decoration: none;
 }
 
-.transition-transform {
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
-  will-change: transform;
-}
-
-.transition-shadow {
-  transition-property: box-shadow;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* Focus styles */
+/* Focus styles - minimal */
 *:focus-visible {
-  outline: 2px solid theme('colors.catppuccin-mauve');
+  outline: 1px solid theme('colors.catppuccin-mauve');
   outline-offset: 2px;
 }
 
-/* Glass morphism utility - Firefox optimized */
-.glass {
-  background: rgba(49, 50, 68, 0.4);
-  border: 1px solid rgba(205, 214, 244, 0.1);
-}
-
-/* Enhanced glass effect for browsers that support backdrop-filter well */
-@supports (backdrop-filter: blur(10px)) {
-  .glass {
-    backdrop-filter: blur(10px);
-    background: rgba(49, 50, 68, 0.3);
-  }
-}
-
-/* Firefox-specific glass fallback */
-@-moz-document url-prefix() {
-  .glass {
-    background: rgba(49, 50, 68, 0.5);
-    backdrop-filter: none;
-  }
-}
-
-/* Optimized hover glow effect */
-.hover-glow {
-  transition: box-shadow 0.3s ease-out;
-}
-
-.hover-glow:hover {
-  box-shadow: 0 0 20px rgba(203, 166, 247, 0.3);
+/* Simple link hover */
+a:hover {
+  text-decoration: none;
 }

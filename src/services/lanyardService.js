@@ -109,7 +109,6 @@ class LanyardService {
       };
     }
 
-
     if (data.spotify) {
       lanyardData.spotify = {
         song: data.spotify.song,
@@ -119,7 +118,6 @@ class LanyardService {
     } else {
       lanyardData.spotify = null;
     }
-
 
     if (data.discord_status) {
       lanyardData.discordStatus = data.discord_status;
@@ -183,8 +181,6 @@ class LanyardService {
 
     lanyardData.isConnected = false;
   }
-
-
 }
 
 const lanyardService = new LanyardService();
