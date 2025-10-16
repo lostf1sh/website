@@ -116,15 +116,13 @@ class LanyardService {
       };
     }
 
-    if (data.spotify) {
-      lanyardData.spotify = {
-        song: data.spotify.song,
-        artist: data.spotify.artist,
-        track_id: data.spotify.track_id,
-      };
-    } else {
-      lanyardData.spotify = null;
-    }
+    lanyardData.spotify = data.spotify
+      ? {
+          song: data.spotify.song,
+          artist: data.spotify.artist,
+          track_id: data.spotify.track_id,
+        }
+      : null;
 
     if (data.discord_status) {
       lanyardData.discordStatus = data.discord_status;
@@ -134,16 +132,14 @@ class LanyardService {
           : "text-catppuccin-subtle";
     }
 
-    if (data.activities) {
-      lanyardData.editorActivity = data.activities.find(
-        (activity) =>
-          activity.name === "Visual Studio Code" ||
-          activity.name === "Code" ||
-          activity.name === "Zed",
-      );
-    } else {
-      lanyardData.editorActivity = null;
-    }
+    lanyardData.editorActivity = data.activities
+      ? data.activities.find(
+          (activity) =>
+            activity.name === "Visual Studio Code" ||
+            activity.name === "Code" ||
+            activity.name === "Zed",
+        )
+      : null;
   }
 
   startHeartbeat(interval) {
@@ -199,7 +195,6 @@ class LanyardService {
 }
 
 const lanyardService = new LanyardService();
-
 lanyardService.connect();
 
 export { lanyardService, lanyardData };

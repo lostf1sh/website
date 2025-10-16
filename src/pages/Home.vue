@@ -12,6 +12,7 @@ const isLoading = computed(() => lanyardData.isLoading);
 
 const editorStatus = computed(() => {
     if (!editorActivity.value) return null;
+
     if (
         editorActivity.value.details &&
         editorActivity.value.details.toLowerCase().includes("idling")
@@ -20,41 +21,30 @@ const editorStatus = computed(() => {
     }
 
     const editorName = editorActivity.value.name;
-    let workspace = "";
-    let filename = "";
+    const isZed = editorName === "Zed";
 
-    // Zed: state has filename, details has workspace
-    // VSCode: details has filename, state has workspace
-    if (editorName === "Zed") {
-        filename = editorActivity.value.state || "";
-        workspace = editorActivity.value.details || "";
-    } else {
-        filename = editorActivity.value.details || "";
-        workspace = editorActivity.value.state || "";
-    }
+    let filename = isZed
+        ? editorActivity.value.state || ""
+        : editorActivity.value.details || "";
 
-    // Handle "Editing" pattern from VSCode
-    if (filename && filename.toLowerCase().includes("editing ")) {
-        filename = filename.replace(/editing /i, "").trim();
-    }
+    let workspace = isZed
+        ? editorActivity.value.details || ""
+        : editorActivity.value.state || "";
 
-    // Handle "Working on" pattern from Zed
-    if (filename && filename.toLowerCase().includes("working on ")) {
-        filename = filename.replace(/working on /i, "").trim();
-    }
+    filename = filename
+        .replace(/editing /i, "")
+        .replace(/working on /i, "")
+        .trim();
 
-    // Handle "In" or "Workspace:" pattern
-    if (workspace && workspace.toLowerCase().includes("in ")) {
-        workspace = workspace.replace(/in /i, "").trim();
-    }
-    if (workspace && workspace.toLowerCase().includes("workspace: ")) {
-        workspace = workspace.replace(/workspace: /i, "").trim();
-    }
+    workspace = workspace
+        .replace(/in /i, "")
+        .replace(/workspace: /i, "")
+        .trim();
 
     return {
         name: editorName,
-        workspace: workspace,
-        filename: filename,
+        workspace,
+        filename,
     };
 });
 
@@ -64,9 +54,9 @@ const songsLoading = ref(true);
 const songsError = ref(null);
 let updateInterval = null;
 
-const currentTrack = computed(() => {
-    return allTracks.value.find((track) => track["@attr"]?.nowplaying);
-});
+const currentTrack = computed(() =>
+    allTracks.value.find((track) => track["@attr"]?.nowplaying),
+);
 
 const consolidatedTracks = computed(() => {
     const tracks = allTracks.value.filter(
@@ -107,8 +97,7 @@ const consolidatedTracks = computed(() => {
 const fetchSongs = async () => {
     try {
         songsLoading.value = true;
-        const newTracks = await getRecentTracks();
-        allTracks.value = newTracks;
+        allTracks.value = await getRecentTracks();
         songsError.value = null;
     } catch (err) {
         songsError.value = "Failed to load tracks. Please try again later.";
@@ -120,11 +109,11 @@ const fetchSongs = async () => {
 
 const fetchProjects = async () => {
     try {
-        const reposResponse = await fetch(
+        const response = await fetch(
             "https://api.github.com/users/lostf1sh/repos",
         );
-        const reposData = await reposResponse.json();
-        repos.value = reposData.sort(
+        const data = await response.json();
+        repos.value = data.sort(
             (a, b) => b.stargazers_count - a.stargazers_count,
         );
     } catch (error) {
@@ -139,9 +128,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    if (updateInterval) {
-        clearInterval(updateInterval);
-    }
+    if (updateInterval) clearInterval(updateInterval);
 });
 </script>
 
@@ -287,7 +274,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="grid lg:grid-cols-2 gap-6">
-                <div class="border-l-2 border-catppuccin-surface pl-4">
+                <div class="border-l-2 border-catppuccin-surface pl-4 min-w-0">
                     <div class="text-catppuccin-subtle text-sm mb-3">
                         ~$ ls ~/projects
                     </div>
@@ -346,7 +333,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <div class="border-l-2 border-catppuccin-surface pl-4">
+                <div class="border-l-2 border-catppuccin-surface pl-4 min-w-0">
                     <div class="text-catppuccin-subtle text-sm mb-3">
                         ~$ cat recent_tracks.log
                     </div>

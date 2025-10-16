@@ -1,13 +1,14 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap");
-
 @import "./base.css";
 
-/* Global styles */
+* {
+    box-sizing: border-box;
+}
+
 html,
 body {
     height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
     overscroll-behavior: none;
 }
 
@@ -17,7 +18,6 @@ html {
 
 body {
     background-color: #1e1e2e;
-
     background-image:
         radial-gradient(
             1200px circle at 10% 15%,
@@ -51,12 +51,25 @@ body {
     background-attachment: fixed, fixed, fixed, scroll, scroll;
     background-repeat: no-repeat;
     min-height: 100vh;
-
-    font-family: "JetBrains Mono", "Roboto Mono", monospace;
-
+    font-family: "JetBrains Mono", monospace;
     font-size: 14px;
-
     line-height: 1.6;
+}
+
+@media (min-width: 1024px) {
+    html,
+    body {
+        overflow-y: hidden;
+    }
+}
+
+@media (max-width: 1023px) {
+    html,
+    body {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+    }
 }
 
 ::selection {
@@ -64,7 +77,6 @@ body {
     color: theme("colors.catppuccin-base");
 }
 
-/* Custom scrollbar - minimalist */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -82,19 +94,16 @@ body {
     background: theme("colors.catppuccin-overlay");
 }
 
-/* Minimal transitions */
 a {
     transition: color 0.15s ease;
     text-decoration: none;
 }
 
-/* Focus styles - minimal */
+a:hover {
+    text-decoration: none;
+}
+
 *:focus-visible {
     outline: 1px solid theme("colors.catppuccin-mauve");
     outline-offset: 2px;
-}
-
-/* Simple link hover */
-a:hover {
-    text-decoration: none;
 }

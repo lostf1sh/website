@@ -17,7 +17,7 @@ npm run dev
 
 ## features
 
-- real-time discord/spotify/vscode status via lanyard
+- real-time discord/spotify/vscode/zed status via lanyard
 - github projects from api
 - last.fm recent tracks
 - monospace terminal design

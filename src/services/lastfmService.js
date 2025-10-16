@@ -1,22 +1,23 @@
-import axios from 'axios';
+import axios from "axios";
 
-const apiKey = 'c9ee964e5a0bffdb2aba28397f852bbf';
-const user = 'molishu';
+const API_KEY = "c9ee964e5a0bffdb2aba28397f852bbf";
+const USER = "molishu";
+const BASE_URL = "https://ws.audioscrobbler.com/2.0/";
 
 export const getRecentTracks = async () => {
   try {
-    const response = await axios.get('https://ws.audioscrobbler.com/2.0/', {
+    const response = await axios.get(BASE_URL, {
       params: {
-        method: 'user.getrecenttracks',
-        user: user,
-        api_key: apiKey,
-        format: 'json',
+        method: "user.getrecenttracks",
+        user: USER,
+        api_key: API_KEY,
+        format: "json",
         limit: 50,
-      }
+      },
     });
     return response.data.recenttracks.track;
   } catch (error) {
-    console.error('Error fetching recent tracks:', error);
+    console.error("Error fetching recent tracks:", error);
     throw error;
   }
 };
