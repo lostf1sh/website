@@ -13,11 +13,10 @@ const lanyardData = reactive({
 class LanyardService {
   constructor() {
     this.ws = null;
-    this.heartbeatInterval = null;
+    this.heartbeat = null;
     this.reconnectTimeout = null;
     this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 1000;
+    this.maxAttempts = 5;
     this.userId = "470904884946796544";
     this.isConnecting = false;
   }
@@ -37,10 +36,8 @@ class LanyardService {
       this.ws = new WebSocket("wss://api.lanyard.rest/socket");
 
       this.ws.onopen = () => {
-        console.log("Lanyard WebSocket connected");
         this.isConnecting = false;
         this.reconnectAttempts = 0;
-        this.reconnectDelay = 1000;
         lanyardData.isConnected = true;
 
         this.ws.send(
@@ -53,60 +50,48 @@ class LanyardService {
 
       this.ws.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data);
-          this.handleMessage(message);
-        } catch (error) {
-          console.error("Error parsing Lanyard message:", error);
-        }
+          this.handleMessage(JSON.parse(event.data));
+        } catch (e) {}
       };
 
       this.ws.onclose = (event) => {
-        console.log("Lanyard WebSocket closed:", event.code, event.reason);
         this.isConnecting = false;
         lanyardData.isConnected = false;
 
-        if (this.heartbeatInterval) {
-          clearInterval(this.heartbeatInterval);
-          this.heartbeatInterval = null;
+        if (this.heartbeat) {
+          clearInterval(this.heartbeat);
+          this.heartbeat = null;
         }
 
-        if (
-          event.code !== 1000 &&
-          this.reconnectAttempts < this.maxReconnectAttempts
-        ) {
+        if (event.code !== 1000 && this.reconnectAttempts < this.maxAttempts) {
           this.scheduleReconnect();
         }
       };
 
-      this.ws.onerror = (error) => {
-        console.error("Lanyard WebSocket error:", error);
+      this.ws.onerror = () => {
         this.isConnecting = false;
         lanyardData.isConnected = false;
       };
-    } catch (error) {
-      console.error("Error creating Lanyard WebSocket:", error);
+    } catch (e) {
       this.isConnecting = false;
       lanyardData.isLoading = false;
       this.scheduleReconnect();
     }
   }
 
-  handleMessage(message) {
-    switch (message.op) {
-      case 1:
-        this.startHeartbeat(message.d.heartbeat_interval);
-        break;
-
-      case 0:
-        if (message.t === "INIT_STATE" || message.t === "PRESENCE_UPDATE") {
-          this.updatePresenceData(message.d);
-          lanyardData.isLoading = false;
-        }
-        break;
+  handleMessage(msg) {
+    if (msg.op === 1) {
+      this.startHeartbeat(msg.d.heartbeat_interval);
+    } else if (
+      msg.op === 0 &&
+      (msg.t === "INIT_STATE" || msg.t === "PRESENCE_UPDATE")
+    ) {
+      this.updatePresence(msg.d);
+      lanyardData.isLoading = false;
     }
   }
 
-  updatePresenceData(data) {
+  updatePresence(data) {
     if (data.discord_user) {
       lanyardData.discordUser = {
         username: data.discord_user.username,
@@ -132,46 +117,34 @@ class LanyardService {
           : "text-catppuccin-subtle";
     }
 
-    lanyardData.editorActivity = data.activities
-      ? data.activities.find(
-          (activity) =>
-            activity.name === "Visual Studio Code" ||
-            activity.name === "Code" ||
-            activity.name === "Zed",
-        )
-      : null;
+    lanyardData.editorActivity = data.activities?.find(
+      (a) =>
+        a.name === "Visual Studio Code" ||
+        a.name === "Code" ||
+        a.name === "Zed",
+    );
   }
 
   startHeartbeat(interval) {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-    }
+    if (this.heartbeat) clearInterval(this.heartbeat);
 
-    this.heartbeatInterval = setInterval(() => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    this.heartbeat = setInterval(() => {
+      if (this.ws?.readyState === WebSocket.OPEN) {
         this.ws.send(JSON.stringify({ op: 3 }));
       }
     }, interval);
   }
 
   scheduleReconnect() {
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
-    }
+    if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
 
     this.reconnectAttempts++;
     const delay = Math.min(
-      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+      1000 * Math.pow(2, this.reconnectAttempts - 1),
       30000,
     );
 
-    console.log(
-      `Scheduling Lanyard reconnect attempt ${this.reconnectAttempts} in ${delay}ms`,
-    );
-
-    this.reconnectTimeout = setTimeout(() => {
-      this.connect();
-    }, delay);
+    this.reconnectTimeout = setTimeout(() => this.connect(), delay);
   }
 
   disconnect() {
@@ -180,9 +153,9 @@ class LanyardService {
       this.reconnectTimeout = null;
     }
 
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
+    if (this.heartbeat) {
+      clearInterval(this.heartbeat);
+      this.heartbeat = null;
     }
 
     if (this.ws) {

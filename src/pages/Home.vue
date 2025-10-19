@@ -99,9 +99,8 @@ const fetchSongs = async () => {
         songsLoading.value = true;
         allTracks.value = await getRecentTracks();
         songsError.value = null;
-    } catch (err) {
-        songsError.value = "Failed to load tracks. Please try again later.";
-        console.error("Error fetching tracks:", err);
+    } catch {
+        songsError.value = "couldn't load tracks";
     } finally {
         songsLoading.value = false;
     }
@@ -109,16 +108,12 @@ const fetchSongs = async () => {
 
 const fetchProjects = async () => {
     try {
-        const response = await fetch(
-            "https://api.github.com/users/lostf1sh/repos",
-        );
-        const data = await response.json();
+        const res = await fetch("https://api.github.com/users/lostf1sh/repos");
+        const data = await res.json();
         repos.value = data.sort(
             (a, b) => b.stargazers_count - a.stargazers_count,
         );
-    } catch (error) {
-        console.error("Error fetching projects:", error);
-    }
+    } catch {}
 };
 
 onMounted(() => {
@@ -153,6 +148,12 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div class="flex items-center gap-4 text-sm">
+                        <router-link
+                            to="/blog"
+                            class="text-catppuccin-subtle hover:text-catppuccin-mauve transition-colors"
+                        >
+                            [blog]
+                        </router-link>
                         <a
                             href="https://github.com/lostf1sh"
                             target="_blank"
