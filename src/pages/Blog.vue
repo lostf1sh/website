@@ -109,177 +109,201 @@ onBeforeUnmount(() => {
         class="w-full min-h-screen h-screen overflow-x-hidden overflow-y-auto font-mono"
     >
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-            <div v-if="view === 'list'">
-                <div class="mb-12">
-                    <div class="text-catppuccin-subtle text-sm mb-2">
-                        ~$ cd ~/blog
-                    </div>
-                    <h1
-                        class="text-3xl md:text-4xl font-bold text-catppuccin-text mb-4"
-                    >
-                        <span class="text-catppuccin-mauve">blog</span>
-                    </h1>
-                    <p
-                        class="text-sm text-catppuccin-gray leading-relaxed mb-6"
-                    >
-                        thoughts on code, tools, and random stuff i find
-                        interesting.
-                    </p>
-
-                    <div class="flex items-center gap-4 text-sm mb-6">
-                        <router-link
-                            to="/"
-                            class="text-catppuccin-subtle hover:text-catppuccin-text transition-colors"
+            <Transition name="fade" mode="out-in">
+                <div v-if="view === 'list'" key="list">
+                    <div class="mb-12">
+                        <div class="text-catppuccin-subtle text-sm mb-2">
+                            ~$ cd ~/blog
+                        </div>
+                        <h1
+                            class="text-3xl md:text-4xl font-bold text-catppuccin-text mb-4"
                         >
-                            [← home]
-                        </router-link>
+                            <span class="text-catppuccin-mauve">blog</span>
+                        </h1>
+                        <p
+                            class="text-sm text-catppuccin-gray leading-relaxed mb-6"
+                        >
+                            thoughts on code, tools, and random stuff i find
+                            interesting.
+                        </p>
+
+                        <div class="flex items-center gap-4 text-sm mb-6">
+                            <router-link
+                                to="/"
+                                class="text-catppuccin-subtle hover:text-catppuccin-text transition-colors"
+                            >
+                                [← home]
+                            </router-link>
+                        </div>
+
+                        <div class="border-l-2 border-catppuccin-surface pl-4">
+                            <div class="text-catppuccin-subtle text-sm mb-2">
+                                ~$ ls tags/
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="tag in tags"
+                                    :key="tag"
+                                    @click="toggleTag(tag)"
+                                    :class="[
+                                        'px-3 py-1 rounded text-xs transition-colors border',
+                                        selectedTag === tag
+                                            ? 'bg-catppuccin-mauve/20 text-catppuccin-mauve border-catppuccin-mauve'
+                                            : 'bg-catppuccin-base/40 text-catppuccin-subtle border-catppuccin-surface hover:text-catppuccin-text hover:border-catppuccin-overlay',
+                                    ]"
+                                >
+                                    {{ tag }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="border-l-2 border-catppuccin-surface pl-4">
-                        <div class="text-catppuccin-subtle text-sm mb-2">
-                            ~$ ls tags/
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button
-                                v-for="tag in tags"
-                                :key="tag"
-                                @click="toggleTag(tag)"
-                                :class="[
-                                    'px-3 py-1 rounded text-xs transition-colors border',
-                                    selectedTag === tag
-                                        ? 'bg-catppuccin-mauve/20 text-catppuccin-mauve border-catppuccin-mauve'
-                                        : 'bg-catppuccin-base/40 text-catppuccin-subtle border-catppuccin-surface hover:text-catppuccin-text hover:border-catppuccin-overlay',
-                                ]"
+                        <div class="text-catppuccin-subtle text-sm mb-3">
+                            ~$ ls -la posts/
+                            <span
+                                v-if="selectedTag"
+                                class="text-catppuccin-mauve"
+                                >| grep "{{ selectedTag }}"</span
                             >
-                                {{ tag }}
-                            </button>
                         </div>
-                    </div>
-                </div>
 
-                <div class="border-l-2 border-catppuccin-surface pl-4">
-                    <div class="text-catppuccin-subtle text-sm mb-3">
-                        ~$ ls -la posts/
-                        <span v-if="selectedTag" class="text-catppuccin-mauve"
-                            >| grep "{{ selectedTag }}"</span
-                        >
-                    </div>
-
-                    <div
-                        v-if="!filteredPosts.length"
-                        class="text-sm text-catppuccin-subtle"
-                    >
-                        no posts found
-                    </div>
-
-                    <div v-else class="space-y-3">
                         <div
-                            v-for="post in filteredPosts"
-                            :key="post.id"
-                            @click="openPost(post.slug)"
-                            class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-all cursor-pointer"
+                            v-if="!filteredPosts.length"
+                            class="text-sm text-catppuccin-subtle"
                         >
-                            <div class="px-4 py-3">
-                                <div
-                                    class="flex items-start justify-between gap-4 mb-2"
-                                >
-                                    <h2
-                                        class="text-base font-semibold text-catppuccin-text group-hover:text-catppuccin-mauve transition-colors"
-                                    >
-                                        {{ post.title }}
-                                    </h2>
-                                    <span
-                                        class="text-xs text-catppuccin-subtle flex-shrink-0"
-                                    >
-                                        {{ formatDate(post.date) }}
-                                    </span>
-                                </div>
+                            no posts found
+                        </div>
 
-                                <p
-                                    class="text-sm text-catppuccin-gray mb-3 leading-relaxed"
-                                >
-                                    {{ post.excerpt }}
-                                </p>
-
-                                <div class="flex items-center gap-2">
-                                    <div class="flex flex-wrap gap-1.5">
-                                        <span
-                                            v-for="tag in post.tags"
-                                            :key="tag"
-                                            class="px-2 py-0.5 rounded text-xs bg-catppuccin-surface/60 text-catppuccin-subtle"
+                        <div v-else class="space-y-3">
+                            <div
+                                v-for="post in filteredPosts"
+                                :key="post.id"
+                                @click="openPost(post.slug)"
+                                class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-all cursor-pointer"
+                            >
+                                <div class="px-4 py-3">
+                                    <div
+                                        class="flex items-start justify-between gap-4 mb-2"
+                                    >
+                                        <h2
+                                            class="text-base font-semibold text-catppuccin-text group-hover:text-catppuccin-mauve transition-colors"
                                         >
-                                            #{{ tag }}
+                                            {{ post.title }}
+                                        </h2>
+                                        <span
+                                            class="text-xs text-catppuccin-subtle flex-shrink-0"
+                                        >
+                                            {{ formatDate(post.date) }}
                                         </span>
                                     </div>
-                                    <span
-                                        class="ml-auto text-catppuccin-subtle group-hover:text-catppuccin-mauve transition-colors text-sm"
+
+                                    <p
+                                        class="text-sm text-catppuccin-gray mb-3 leading-relaxed"
                                     >
-                                        read →
-                                    </span>
+                                        {{ post.excerpt }}
+                                    </p>
+
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex flex-wrap gap-1.5">
+                                            <span
+                                                v-for="tag in post.tags"
+                                                :key="tag"
+                                                class="px-2 py-0.5 rounded text-xs bg-catppuccin-surface/60 text-catppuccin-subtle"
+                                            >
+                                                #{{ tag }}
+                                            </span>
+                                        </div>
+                                        <span
+                                            class="ml-auto text-catppuccin-subtle group-hover:text-catppuccin-mauve transition-colors text-sm"
+                                        >
+                                            read →
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div v-else-if="view === 'post' && currentPost">
-                <div class="mb-8">
-                    <div class="text-catppuccin-subtle text-sm mb-2">
-                        ~$ cat {{ currentPost.slug }}.md
-                    </div>
+                <div v-else-if="view === 'post' && currentPost" key="post">
+                    <div class="mb-8">
+                        <div class="text-catppuccin-subtle text-sm mb-2">
+                            ~$ cat {{ currentPost.slug }}.md
+                        </div>
 
-                    <button
-                        @click="goBack"
-                        class="text-sm text-catppuccin-subtle hover:text-catppuccin-text transition-colors mb-6 inline-flex items-center gap-1"
-                    >
-                        ← back to posts
-                    </button>
+                        <button
+                            @click="goBack"
+                            class="text-sm text-catppuccin-subtle hover:text-catppuccin-text transition-colors mb-6 inline-flex items-center gap-1"
+                        >
+                            ← back to posts
+                        </button>
 
-                    <h1
-                        class="text-3xl md:text-4xl font-bold text-catppuccin-text mb-3"
-                    >
-                        {{ currentPost.title }}
-                    </h1>
+                        <h1
+                            class="text-3xl md:text-4xl font-bold text-catppuccin-text mb-3"
+                        >
+                            {{ currentPost.title }}
+                        </h1>
 
-                    <div
-                        class="flex items-center gap-4 text-sm text-catppuccin-subtle mb-4"
-                    >
-                        <span>{{ formatDate(currentPost.date) }}</span>
-                        <span class="text-catppuccin-surface">•</span>
-                        <div class="flex gap-2">
-                            <span
-                                v-for="tag in currentPost.tags"
-                                :key="tag"
-                                class="text-catppuccin-gray"
-                            >
-                                #{{ tag }}
-                            </span>
+                        <div
+                            class="flex items-center gap-4 text-sm text-catppuccin-subtle mb-4"
+                        >
+                            <span>{{ formatDate(currentPost.date) }}</span>
+                            <span class="text-catppuccin-surface">•</span>
+                            <div class="flex gap-2">
+                                <span
+                                    v-for="tag in currentPost.tags"
+                                    :key="tag"
+                                    class="text-catppuccin-gray"
+                                >
+                                    #{{ tag }}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <article class="border-l-2 border-catppuccin-surface pl-4 mb-8">
-                    <div
-                        class="prose prose-invert max-w-none text-catppuccin-text"
-                        v-html="parseMarkdown(currentPost.content)"
-                    ></div>
-                </article>
-
-                <div class="border-l-2 border-catppuccin-surface pl-4">
-                    <button
-                        @click="goBack"
-                        class="text-sm text-catppuccin-subtle hover:text-catppuccin-mauve transition-colors inline-flex items-center gap-1"
+                    <article
+                        class="border-l-2 border-catppuccin-surface pl-4 mb-8"
                     >
-                        ← back to all posts
-                    </button>
+                        <div
+                            class="prose prose-invert max-w-none text-catppuccin-text"
+                            v-html="parseMarkdown(currentPost.content)"
+                        ></div>
+                    </article>
+
+                    <div class="border-l-2 border-catppuccin-surface pl-4">
+                        <button
+                            @click="goBack"
+                            class="text-sm text-catppuccin-subtle hover:text-catppuccin-mauve transition-colors inline-flex items-center gap-1"
+                        >
+                            ← back to all posts
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </Transition>
         </div>
     </div>
 </template>
 
 <style scoped>
+.fade-enter-active {
+    transition: all 0.3s ease-out;
+}
+
+.fade-leave-active {
+    transition: all 0.2s ease-in;
+}
+
+.fade-enter-from {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
 article :deep(a) {
     word-break: break-word;
 }

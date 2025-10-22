@@ -1,6 +1,6 @@
 ---
 title: welcome to my blog
-date: 2024-01-15
+date: 2025-10-17
 tags: [meta, personal]
 excerpt: first post on this new blog. thoughts on why i'm writing and what to expect.
 ---

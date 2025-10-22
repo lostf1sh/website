@@ -49,8 +49,11 @@ const editorStatus = computed(() => {
 });
 
 const repos = ref([]);
+const reposLoading = ref(true);
+const reposInitialLoad = ref(true);
 const allTracks = ref([]);
 const songsLoading = ref(true);
+const songsInitialLoad = ref(true);
 const songsError = ref(null);
 let updateInterval = null;
 
@@ -103,17 +106,23 @@ const fetchSongs = async () => {
         songsError.value = "couldn't load tracks";
     } finally {
         songsLoading.value = false;
+        songsInitialLoad.value = false;
     }
 };
 
 const fetchProjects = async () => {
     try {
+        reposLoading.value = true;
         const res = await fetch("https://api.github.com/users/lostf1sh/repos");
         const data = await res.json();
         repos.value = data.sort(
             (a, b) => b.stargazers_count - a.stargazers_count,
         );
-    } catch {}
+    } catch {
+    } finally {
+        reposLoading.value = false;
+        reposInitialLoad.value = false;
+    }
 };
 
 onMounted(() => {
@@ -147,7 +156,7 @@ onBeforeUnmount(() => {
                         ><span class="text-catppuccin-green">moli</span>
                     </div>
 
-                    <div class="flex items-center gap-4 text-sm">
+                    <div class="flex items-center flex-wrap gap-4 text-sm">
                         <router-link
                             to="/blog"
                             class="text-catppuccin-subtle hover:text-catppuccin-mauve transition-colors"
@@ -167,13 +176,6 @@ onBeforeUnmount(() => {
                             class="text-catppuccin-subtle hover:text-catppuccin-pink transition-colors"
                         >
                             [instagram]
-                        </a>
-                        <a
-                            href="https://discord.com/user/470904884946796544"
-                            target="_blank"
-                            class="text-catppuccin-subtle hover:text-catppuccin-blue transition-colors"
-                        >
-                            [discord]
                         </a>
                         <a
                             href="https://open.spotify.com/user/31q6jft6qtkzisve7zu2o2mytyry?si=1c9f27a30d25435b"
@@ -280,19 +282,45 @@ onBeforeUnmount(() => {
                         ~$ ls ~/projects
                     </div>
 
+                    <div v-if="reposLoading" class="space-y-2">
+                        <div
+                            v-for="i in 6"
+                            :key="`repo-loading-${i}`"
+                            class="rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 p-3 animate-pulse"
+                        >
+                            <div class="flex items-start gap-3">
+                                <span class="text-catppuccin-subtle">></span>
+                                <div class="flex-1 min-w-0">
+                                    <div
+                                        class="h-3 bg-catppuccin-surface/70 rounded w-2/3 mb-2"
+                                    ></div>
+                                    <div
+                                        class="h-2 bg-catppuccin-surface/50 rounded w-1/3"
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div
-                        v-if="!repos.length"
+                        v-else-if="!repos.length"
                         class="text-sm text-catppuccin-subtle"
                     >
                         no projects found
                     </div>
 
-                    <div v-else class="space-y-2">
+                    <TransitionGroup
+                        v-else
+                        :name="reposInitialLoad ? '' : 'list'"
+                        tag="div"
+                        class="space-y-2"
+                    >
                         <a
-                            v-for="repo in repos.slice(0, 6)"
+                            v-for="(repo, index) in repos.slice(0, 6)"
                             :key="repo.id"
                             :href="repo.html_url"
                             target="_blank"
+                            :style="{ transitionDelay: `${index * 50}ms` }"
                             class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-colors"
                         >
                             <div
@@ -331,7 +359,7 @@ onBeforeUnmount(() => {
                                 </div>
                             </div>
                         </a>
-                    </div>
+                    </TransitionGroup>
                 </div>
 
                 <div class="border-l-2 border-catppuccin-surface pl-4 min-w-0">
@@ -373,11 +401,17 @@ onBeforeUnmount(() => {
                         no tracks found
                     </div>
 
-                    <div v-else class="space-y-2">
+                    <TransitionGroup
+                        v-else
+                        :name="songsInitialLoad ? '' : 'list'"
+                        tag="div"
+                        class="space-y-2"
+                    >
                         <a
                             v-if="currentTrack"
                             :href="currentTrack.url"
                             target="_blank"
+                            :key="`current-${currentTrack.name}-${currentTrack.artist['#text']}`"
                             class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-colors"
                         >
                             <div
@@ -411,13 +445,16 @@ onBeforeUnmount(() => {
                         </a>
 
                         <a
-                            v-for="track in consolidatedTracks.slice(
+                            v-for="(track, index) in consolidatedTracks.slice(
                                 0,
                                 currentTrack ? 5 : 6,
                             )"
                             :key="`${track.name}-${track.artist['#text']}-${track.date}`"
                             :href="track.url"
                             target="_blank"
+                            :style="{
+                                transitionDelay: `${(index + (currentTrack ? 1 : 0)) * 50}ms`,
+                            }"
                             class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-colors"
                         >
                             <div
@@ -454,9 +491,34 @@ onBeforeUnmount(() => {
                                 </div>
                             </div>
                         </a>
-                    </div>
+                    </TransitionGroup>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.list-enter-active {
+    transition: all 0.4s ease-out;
+}
+
+.list-leave-active {
+    transition: all 0.3s ease-in;
+    position: absolute;
+}
+
+.list-enter-from {
+    opacity: 0;
+    transform: translateY(15px);
+}
+
+.list-leave-to {
+    opacity: 0;
+    transform: translateX(-10px);
+}
+
+.list-move {
+    transition: transform 0.4s ease;
+}
+</style>
