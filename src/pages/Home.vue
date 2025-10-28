@@ -10,6 +10,7 @@ const discordUser = computed(() => lanyardData.discordUser);
 const editorActivity = computed(() => lanyardData.editorActivity);
 const isLoading = computed(() => lanyardData.isLoading);
 
+
 const editorStatus = computed(() => {
     if (!editorActivity.value) return null;
 
@@ -50,7 +51,6 @@ const editorStatus = computed(() => {
 
 const repos = ref([]);
 const reposLoading = ref(true);
-const reposInitialLoad = ref(true);
 const allTracks = ref([]);
 const songsLoading = ref(true);
 const songsInitialLoad = ref(true);
@@ -97,6 +97,17 @@ const consolidatedTracks = computed(() => {
     return consolidated.slice(0, 10);
 });
 
+
+const displayedRepos = computed(() => {
+    if (!repos.value.length) return [];
+
+    return [...repos.value]
+        .sort((a, b) => b.stargazers_count - a.stargazers_count)
+        .slice(0, 6);
+});
+
+
+
 const fetchSongs = async () => {
     try {
         songsLoading.value = true;
@@ -115,13 +126,10 @@ const fetchProjects = async () => {
         reposLoading.value = true;
         const res = await fetch("https://api.github.com/users/lostf1sh/repos");
         const data = await res.json();
-        repos.value = data.sort(
-            (a, b) => b.stargazers_count - a.stargazers_count,
-        );
+        repos.value = Array.isArray(data) ? data : [];
     } catch {
     } finally {
         reposLoading.value = false;
-        reposInitialLoad.value = false;
     }
 };
 
@@ -274,6 +282,7 @@ onBeforeUnmount(() => {
                         bash |
                     </div>
                 </div>
+
             </div>
 
             <div class="grid lg:grid-cols-2 gap-6">
@@ -281,6 +290,7 @@ onBeforeUnmount(() => {
                     <div class="text-catppuccin-subtle text-sm mb-3">
                         ~$ ls ~/projects
                     </div>
+
 
                     <div v-if="reposLoading" class="space-y-2">
                         <div
@@ -310,13 +320,13 @@ onBeforeUnmount(() => {
                     </div>
 
                     <TransitionGroup
-                        v-else
-                        :name="reposInitialLoad ? '' : 'list'"
+                        v-else-if="displayedRepos.length"
+                        name="list"
                         tag="div"
                         class="space-y-2"
                     >
                         <a
-                            v-for="(repo, index) in repos.slice(0, 6)"
+                            v-for="(repo, index) in displayedRepos"
                             :key="repo.id"
                             :href="repo.html_url"
                             target="_blank"
@@ -360,6 +370,13 @@ onBeforeUnmount(() => {
                             </div>
                         </a>
                     </TransitionGroup>
+
+                    <div
+                        v-else
+                        class="text-sm text-catppuccin-subtle"
+                    >
+                        no repositories found
+                    </div>
                 </div>
 
                 <div class="border-l-2 border-catppuccin-surface pl-4 min-w-0">
@@ -494,6 +511,8 @@ onBeforeUnmount(() => {
                     </TransitionGroup>
                 </div>
             </div>
+
+
         </div>
     </div>
 </template>

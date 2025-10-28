@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
     getAllPosts,
     getPostBySlug,
@@ -12,6 +13,9 @@ const currentPost = ref(null);
 const selectedTag = ref(null);
 const posts = ref([]);
 const tags = ref([]);
+
+const route = useRoute();
+const router = useRouter();
 
 const filteredPosts = computed(() => {
     if (!selectedTag.value) return posts.value;
@@ -28,13 +32,33 @@ const openPost = (slug) => {
     if (currentPost.value) {
         view.value = "post";
         window.scrollTo({ top: 0, behavior: "smooth" });
+        if (route.query.post !== slug) {
+            router.replace({
+                name: "Blog",
+                query: { ...route.query, post: slug },
+            });
+        }
+    } else if (route.query.post) {
+        const newQuery = { ...route.query };
+        delete newQuery.post;
+        router.replace({ name: "Blog", query: newQuery });
     }
 };
 
-const goBack = () => {
+const clearPostQuery = () => {
+    if (!("post" in route.query)) return;
+    const newQuery = { ...route.query };
+    delete newQuery.post;
+    router.replace({ name: "Blog", query: newQuery });
+};
+
+const goBack = ({ skipQueryUpdate = false } = {}) => {
     view.value = "list";
     currentPost.value = null;
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!skipQueryUpdate) {
+        clearPostQuery();
+    }
 };
 
 const toggleTag = (tag) => {
@@ -96,12 +120,28 @@ onMounted(() => {
     loadPosts();
     document.documentElement.style.overflowY = "auto";
     document.body.style.overflowY = "auto";
+
+    const slugFromQuery = route.query.post;
+    if (slugFromQuery) {
+        openPost(slugFromQuery);
+    }
 });
 
 onBeforeUnmount(() => {
     document.documentElement.style.overflowY = "";
     document.body.style.overflowY = "";
 });
+
+watch(
+    () => route.query.post,
+    (slug, prev) => {
+        if (slug && slug !== prev) {
+            openPost(slug);
+        } else if (!slug && view.value === "post") {
+            goBack({ skipQueryUpdate: true });
+        }
+    },
+);
 </script>
 
 <template>
