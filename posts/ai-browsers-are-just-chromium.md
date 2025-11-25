@@ -1,6 +1,6 @@
 ---
 title: ai browsers are just chromium
-date: 2024-03-28
+date: 2025-10-19
 tags: [browsers, ai, tech-criticism]
 excerpt: stop shipping chromium with a chatbot sidebar and calling it revolutionary. please.
 ---

@@ -63,10 +63,61 @@ const toggleTag = (tag) => {
 const parseMarkdown = (content) => {
     let html = content;
 
-    html = html.replace(
-        /```(\w+)?\n([\s\S]*?)```/g,
-        '<pre class="bg-catppuccin-surface/50 border border-catppuccin-overlay/30 rounded p-4 overflow-x-auto my-4"><code>$2</code></pre>',
-    );
+    // Store code blocks temporarily to prevent other replacements from affecting them
+    const codeBlocks = [];
+    html = html.replace(/```(\w*)\s*\n?([\s\S]*?)```/g, (match, lang, code) => {
+        const placeholder = `__CODEBLOCK_${codeBlocks.length}__`;
+        const escapedCode = code
+            .trim()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        codeBlocks.push(
+            `<pre class="bg-catppuccin-surface/50 border border-catppuccin-overlay/30 rounded p-4 overflow-x-auto my-4"><code>${escapedCode}</code></pre>`
+        );
+        return placeholder;
+    });
+
+    // Parse tables
+    const tables = [];
+    html = html.replace(/((?:\|[^\n]+\|\r?\n?)+)/g, (match) => {
+        // Check if this looks like a table (has at least header and separator)
+        const lines = match.trim().split(/\r?\n/);
+        if (lines.length < 2) return match;
+        
+        // Check for separator row (|---|---|)
+        const hasSeparator = /^\|[\s\-:|]+\|$/.test(lines[1]);
+        if (!hasSeparator) return match;
+        
+        const placeholder = `__TABLE_${tables.length}__`;
+        const headerRow = lines[0];
+        const dataRows = lines.slice(2);
+        
+        let tableHtml = '<table class="w-full my-4 text-sm border-collapse">';
+        
+        const headers = headerRow.split('|').filter(c => c.trim());
+        tableHtml += '<thead><tr>';
+        headers.forEach(h => {
+            tableHtml += `<th class="border border-catppuccin-surface px-3 py-2 text-left text-catppuccin-mauve bg-catppuccin-surface/30">${h.trim()}</th>`;
+        });
+        tableHtml += '</tr></thead>';
+        
+        tableHtml += '<tbody>';
+        dataRows.forEach(row => {
+            if (row.trim() && !/^\|[\s\-:|]+\|$/.test(row)) {
+                const cells = row.split('|').filter(c => c.trim());
+                tableHtml += '<tr>';
+                cells.forEach(c => {
+                    tableHtml += `<td class="border border-catppuccin-surface px-3 py-2 text-catppuccin-text">${c.trim()}</td>`;
+                });
+                tableHtml += '</tr>';
+            }
+        });
+        tableHtml += '</tbody></table>';
+        
+        tables.push(tableHtml);
+        return placeholder;
+    });
 
     html = html.replace(
         /^### (.*$)/gim,
@@ -101,12 +152,22 @@ const parseMarkdown = (content) => {
     html = html
         .split("\n\n")
         .map((p) => {
-            if (!p.trim().startsWith("<")) {
+            if (!p.trim().startsWith("<") && !p.trim().startsWith("__CODEBLOCK_") && !p.trim().startsWith("__TABLE_")) {
                 return `<p class="text-catppuccin-text leading-relaxed mb-4">${p}</p>`;
             }
             return p;
         })
         .join("\n");
+
+    // Restore code blocks
+    codeBlocks.forEach((block, i) => {
+        html = html.replace(`__CODEBLOCK_${i}__`, block);
+    });
+
+    // Restore tables
+    tables.forEach((table, i) => {
+        html = html.replace(`__TABLE_${i}__`, table);
+    });
 
     return html;
 };
