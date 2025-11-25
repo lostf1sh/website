@@ -568,14 +568,14 @@ onBeforeUnmount(() => {
                     <div class="text-catppuccin-subtle text-sm">
                         ~$ git log --oneline --since="1.year.ago" | wc -l
                     </div>
-                    <div v-if="!contributionsLoading" class="flex items-center gap-2 text-xs text-catppuccin-subtle">
+                    <div v-if="!contributionsLoading" class="flex items-center gap-1 text-[10px] text-catppuccin-subtle">
                         <span>less</span>
-                        <div class="flex gap-[2px]">
-                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-surface/50"></div>
-                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green/30"></div>
-                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green/50"></div>
-                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green/70"></div>
-                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green"></div>
+                        <div class="flex gap-[1px]">
+                            <div class="w-2 h-2 rounded-[2px] bg-catppuccin-surface/50"></div>
+                            <div class="w-2 h-2 rounded-[2px] bg-catppuccin-green/30"></div>
+                            <div class="w-2 h-2 rounded-[2px] bg-catppuccin-green/50"></div>
+                            <div class="w-2 h-2 rounded-[2px] bg-catppuccin-green/70"></div>
+                            <div class="w-2 h-2 rounded-[2px] bg-catppuccin-green"></div>
                         </div>
                         <span>more</span>
                     </div>
@@ -585,45 +585,22 @@ onBeforeUnmount(() => {
                     v-if="contributionsLoading"
                     class="animate-pulse"
                 >
-                    <div class="h-[120px] bg-catppuccin-surface/30 rounded"></div>
+                    <div class="h-[60px] bg-catppuccin-surface/30 rounded"></div>
                 </div>
 
                 <div v-else>
-                    <!-- Month labels -->
-                    <div class="flex ml-8 mb-1">
-                        <div class="grid grid-flow-col auto-cols-fr gap-[3px] flex-1">
-                            <div 
-                                v-for="(week, weekIndex) in contributionWeeks" 
-                                :key="'month-' + weekIndex"
-                                class="text-xs text-catppuccin-subtle"
-                            >
-                                <span v-if="monthLabels.find(m => m.weekIndex === weekIndex)">
-                                    {{ monthLabels.find(m => m.weekIndex === weekIndex).name }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Graph with day labels -->
-                    <div class="flex">
-                        <!-- Day labels -->
-                        <div class="flex flex-col justify-around text-xs text-catppuccin-subtle pr-2 py-[2px]" style="height: 98px;">
-                            <span>Mon</span>
-                            <span>Wed</span>
-                            <span>Fri</span>
-                        </div>
-
-                        <!-- Contribution grid -->
-                        <div class="grid grid-flow-col auto-cols-fr gap-[3px] flex-1">
+                    <!-- Contribution grid - fixed on desktop, scrollable on mobile -->
+                    <div class="overflow-x-auto md:overflow-visible pb-2 md:pb-0 scrollbar-thin">
+                        <div class="inline-flex md:flex gap-[3px] md:gap-1" style="min-width: max-content;">
                             <div
                                 v-for="(week, weekIndex) in contributionWeeks"
                                 :key="weekIndex"
-                                class="flex flex-col gap-[3px]"
+                                class="flex flex-col gap-[3px] md:gap-1 md:flex-1"
                             >
                                 <div
                                     v-for="(day, dayIndex) in week"
                                     :key="dayIndex"
-                                    class="aspect-square rounded-sm"
+                                    class="w-[10px] h-[10px] md:w-auto md:h-auto md:aspect-square rounded-sm"
                                     :class="[
                                         getContributionLevel(day.count) === 0
                                             ? 'bg-catppuccin-surface/50'
@@ -641,7 +618,7 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div class="text-xs text-catppuccin-gray mt-3">
+                    <div class="text-xs text-catppuccin-gray mt-2">
                         {{ totalContributions }} contributions in the last year
                     </div>
                 </div>

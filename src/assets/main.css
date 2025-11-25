@@ -88,6 +88,20 @@ body {
     background: theme("colors.catppuccin-overlay");
 }
 
+/* Thin scrollbar for contribution graph */
+.scrollbar-thin::-webkit-scrollbar {
+    height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: theme("colors.catppuccin-surface");
+    border-radius: 2px;
+}
+
 a {
     transition: color 0.15s ease;
     text-decoration: none;
