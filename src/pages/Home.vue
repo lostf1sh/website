@@ -2,6 +2,10 @@
 import { computed, ref, onMounted, onBeforeUnmount } from "vue";
 import { lanyardData } from "@/services/lanyardService";
 import { getRecentTracks } from "@/services/lastfmService";
+import {
+    getContributionData,
+    getContributionLevel,
+} from "@/services/githubService";
 
 const discordStatusColor = computed(() => lanyardData.discordStatusColor);
 const spotify = computed(() => lanyardData.spotify);
@@ -55,6 +59,8 @@ const allTracks = ref([]);
 const songsLoading = ref(true);
 const songsInitialLoad = ref(true);
 const songsError = ref(null);
+const contributions = ref([]);
+const contributionsLoading = ref(true);
 let updateInterval = null;
 
 const currentTrack = computed(() =>
@@ -133,9 +139,54 @@ const fetchProjects = async () => {
     }
 };
 
+const fetchContributions = async () => {
+    try {
+        contributionsLoading.value = true;
+        contributions.value = await getContributionData();
+    } catch {
+    } finally {
+        contributionsLoading.value = false;
+    }
+};
+
+const contributionWeeks = computed(() => {
+    const weeks = [];
+    for (let i = 0; i < contributions.value.length; i += 7) {
+        weeks.push(contributions.value.slice(i, i + 7));
+    }
+    return weeks;
+});
+
+const totalContributions = computed(() => {
+    return contributions.value.reduce((sum, day) => sum + day.count, 0);
+});
+
+const monthLabels = computed(() => {
+    if (!contributions.value.length) return [];
+    
+    const months = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let lastMonth = -1;
+    
+    contributionWeeks.value.forEach((week, weekIndex) => {
+        const firstDay = week[0];
+        if (firstDay) {
+            const date = new Date(firstDay.date);
+            const month = date.getMonth();
+            if (month !== lastMonth) {
+                months.push({ name: monthNames[month], weekIndex });
+                lastMonth = month;
+            }
+        }
+    });
+    
+    return months;
+});
+
 onMounted(() => {
     fetchProjects();
     fetchSongs();
+    fetchContributions();
     updateInterval = setInterval(fetchSongs, 30000);
 });
 
@@ -509,6 +560,90 @@ onBeforeUnmount(() => {
                             </div>
                         </a>
                     </TransitionGroup>
+                </div>
+            </div>
+
+            <div class="mt-6 border-l-2 border-catppuccin-surface pl-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-catppuccin-subtle text-sm">
+                        ~$ git log --oneline --since="1.year.ago" | wc -l
+                    </div>
+                    <div v-if="!contributionsLoading" class="flex items-center gap-2 text-xs text-catppuccin-subtle">
+                        <span>less</span>
+                        <div class="flex gap-[2px]">
+                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-surface/50"></div>
+                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green/30"></div>
+                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green/50"></div>
+                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green/70"></div>
+                            <div class="w-[10px] h-[10px] rounded-sm bg-catppuccin-green"></div>
+                        </div>
+                        <span>more</span>
+                    </div>
+                </div>
+
+                <div
+                    v-if="contributionsLoading"
+                    class="animate-pulse"
+                >
+                    <div class="h-[120px] bg-catppuccin-surface/30 rounded"></div>
+                </div>
+
+                <div v-else>
+                    <!-- Month labels -->
+                    <div class="flex ml-8 mb-1">
+                        <div class="grid grid-flow-col auto-cols-fr gap-[3px] flex-1">
+                            <div 
+                                v-for="(week, weekIndex) in contributionWeeks" 
+                                :key="'month-' + weekIndex"
+                                class="text-xs text-catppuccin-subtle"
+                            >
+                                <span v-if="monthLabels.find(m => m.weekIndex === weekIndex)">
+                                    {{ monthLabels.find(m => m.weekIndex === weekIndex).name }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graph with day labels -->
+                    <div class="flex">
+                        <!-- Day labels -->
+                        <div class="flex flex-col justify-around text-xs text-catppuccin-subtle pr-2 py-[2px]" style="height: 98px;">
+                            <span>Mon</span>
+                            <span>Wed</span>
+                            <span>Fri</span>
+                        </div>
+
+                        <!-- Contribution grid -->
+                        <div class="grid grid-flow-col auto-cols-fr gap-[3px] flex-1">
+                            <div
+                                v-for="(week, weekIndex) in contributionWeeks"
+                                :key="weekIndex"
+                                class="flex flex-col gap-[3px]"
+                            >
+                                <div
+                                    v-for="(day, dayIndex) in week"
+                                    :key="dayIndex"
+                                    class="aspect-square rounded-sm"
+                                    :class="[
+                                        getContributionLevel(day.count) === 0
+                                            ? 'bg-catppuccin-surface/50'
+                                            : getContributionLevel(day.count) === 1
+                                              ? 'bg-catppuccin-green/30'
+                                              : getContributionLevel(day.count) === 2
+                                                ? 'bg-catppuccin-green/50'
+                                                : getContributionLevel(day.count) === 3
+                                                  ? 'bg-catppuccin-green/70'
+                                                  : 'bg-catppuccin-green',
+                                    ]"
+                                    :title="`${day.date}: ${day.count} contributions`"
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-catppuccin-gray mt-3">
+                        {{ totalContributions }} contributions in the last year
+                    </div>
                 </div>
             </div>
 
