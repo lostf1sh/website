@@ -45,19 +45,14 @@ const openPost = (slug) => {
     }
 };
 
-const clearPostQuery = () => {
-    if (!("post" in route.query)) return;
-    const newQuery = { ...route.query };
-    delete newQuery.post;
-    router.replace({ name: "Blog", query: newQuery });
-};
-
 const goBack = ({ skipQueryUpdate = false } = {}) => {
     view.value = "list";
     currentPost.value = null;
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (!skipQueryUpdate) {
-        clearPostQuery();
+    if (!skipQueryUpdate && "post" in route.query) {
+        const newQuery = { ...route.query };
+        delete newQuery.post;
+        router.replace({ name: "Blog", query: newQuery });
     }
 };
 
@@ -134,8 +129,8 @@ onBeforeUnmount(() => {
 
 watch(
     () => route.query.post,
-    (slug, prev) => {
-        if (slug && slug !== prev) {
+    (slug, prevSlug) => {
+        if (slug && slug !== prevSlug) {
             openPost(slug);
         } else if (!slug && view.value === "post") {
             goBack({ skipQueryUpdate: true });

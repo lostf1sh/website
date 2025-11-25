@@ -64,10 +64,6 @@ export const getPostBySlug = (slug) => {
   return getAllPosts().find((post) => post.slug === slug);
 };
 
-export const getPostsByTag = (tag) => {
-  return getAllPosts().filter((post) => post.tags.includes(tag));
-};
-
 export const getAllTags = () => {
   const tags = new Set();
   getAllPosts().forEach((post) => {
