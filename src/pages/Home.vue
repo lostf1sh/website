@@ -222,20 +222,18 @@ onBeforeUnmount(() => {
                         >
                             [blog]
                         </router-link>
-                        <a
-                            href="https://github.com/lostf1sh"
-                            target="_blank"
+                        <router-link
+                            to="/github"
                             class="text-catppuccin-subtle hover:text-catppuccin-text transition-colors"
                         >
                             [github]
-                        </a>
-                        <a
-                            href="https://www.instagram.com/lxstf1sh"
-                            target="_blank"
+                        </router-link>
+                        <router-link
+                            to="/instagram"
                             class="text-catppuccin-subtle hover:text-catppuccin-pink transition-colors"
                         >
                             [instagram]
-                        </a>
+                        </router-link>
                         <a
                             href="https://open.spotify.com/user/31q6jft6qtkzisve7zu2o2mytyry?si=1c9f27a30d25435b"
                             target="_blank"

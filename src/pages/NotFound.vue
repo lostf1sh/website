@@ -48,24 +48,22 @@
                             <span class="text-catppuccin-subtle">→</span>
                             <span>blog posts</span>
                         </router-link>
-                        <a
-                            href="https://github.com/lostf1sh"
-                            target="_blank"
-                            class="flex items-center gap-2 text-catppuccin-text hover:text-catppuccin-text transition-colors"
+                        <router-link
+                            to="/github"
+                            class="flex items-center gap-2 text-catppuccin-text hover:text-catppuccin-mauve transition-colors"
                         >
                             <span class="text-catppuccin-blue">/github</span>
                             <span class="text-catppuccin-subtle">→</span>
                             <span>projects</span>
-                        </a>
-                        <a
-                            href="https://www.instagram.com/lxstf1sh"
-                            target="_blank"
-                            class="flex items-center gap-2 text-catppuccin-text hover:text-catppuccin-pink transition-colors"
+                        </router-link>
+                        <router-link
+                            to="/instagram"
+                            class="flex items-center gap-2 text-catppuccin-text hover:text-catppuccin-mauve transition-colors"
                         >
                             <span class="text-catppuccin-blue">/instagram</span>
                             <span class="text-catppuccin-subtle">→</span>
                             <span>photos</span>
-                        </a>
+                        </router-link>
                     </div>
                 </div>
             </div>
