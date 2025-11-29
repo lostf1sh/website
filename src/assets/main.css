@@ -115,3 +115,24 @@ a:hover {
     outline: 1px solid theme("colors.catppuccin-mauve");
     outline-offset: 2px;
 }
+
+/* Terminal cursor blink animation */
+@keyframes cursor-blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+.cursor-blink {
+    animation: cursor-blink 1.2s infinite;
+}
+
+.cursor-blink::after {
+    content: "_";
+    color: theme("colors.catppuccin-mauve");
+    animation: cursor-blink 1.2s infinite;
+}
+

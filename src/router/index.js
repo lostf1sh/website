@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "@/pages/Home.vue";
 import Blog from "@/pages/Blog.vue";
+import NotFound from "@/pages/NotFound.vue";
 
 const routes = [
   {
@@ -14,6 +15,12 @@ const routes = [
     name: "Blog",
     component: Blog,
     meta: { title: "Blog | f1sh.dev" },
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: NotFound,
+    meta: { title: "404 Not Found | f1sh.dev" },
   },
 ];
 

@@ -347,17 +347,13 @@ onBeforeUnmount(() => {
                         <div
                             v-for="i in 6"
                             :key="`repo-loading-${i}`"
-                            class="rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 p-3 animate-pulse"
+                            class="rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 p-3"
                         >
                             <div class="flex items-start gap-3">
                                 <span class="text-catppuccin-subtle">></span>
                                 <div class="flex-1 min-w-0">
-                                    <div
-                                        class="h-3 bg-catppuccin-surface/70 rounded w-2/3 mb-2"
-                                    ></div>
-                                    <div
-                                        class="h-2 bg-catppuccin-surface/50 rounded w-1/3"
-                                    ></div>
+                                    <div class="h-3 bg-catppuccin-surface/70 rounded w-2/3 mb-2 cursor-blink"></div>
+                                    <div class="h-2 bg-catppuccin-surface/50 rounded w-1/3 cursor-blink"></div>
                                 </div>
                             </div>
                         </div>
@@ -439,17 +435,13 @@ onBeforeUnmount(() => {
                         <div
                             v-for="i in 6"
                             :key="`loading-${i}`"
-                            class="rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 p-3 animate-pulse"
+                            class="rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 p-3"
                         >
                             <div class="flex items-start gap-3">
                                 <span class="text-catppuccin-subtle">></span>
                                 <div class="flex-1 min-w-0">
-                                    <div
-                                        class="h-3 bg-catppuccin-surface/70 rounded w-2/3 mb-2"
-                                    ></div>
-                                    <div
-                                        class="h-2 bg-catppuccin-surface/50 rounded w-1/3"
-                                    ></div>
+                                    <div class="h-3 bg-catppuccin-surface/70 rounded w-2/3 mb-2 cursor-blink"></div>
+                                    <div class="h-2 bg-catppuccin-surface/50 rounded w-1/3 cursor-blink"></div>
                                 </div>
                             </div>
                         </div>
@@ -583,9 +575,8 @@ onBeforeUnmount(() => {
 
                 <div
                     v-if="contributionsLoading"
-                    class="animate-pulse"
                 >
-                    <div class="h-[60px] bg-catppuccin-surface/30 rounded"></div>
+                    <div class="h-[60px] bg-catppuccin-surface/30 rounded cursor-blink"></div>
                 </div>
 
                 <div v-else>

@@ -50,6 +50,11 @@
         <!-- Preload critical assets -->
         <link rel="preload" href="/src/main.js" as="script" />
 
+        <!-- Prism.js for syntax highlighting -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+        <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" as="script" />
+        <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" as="script" />
+
         <!-- Accessibility -->
         <meta name="theme-color" content="#11111b" />
     </head>
@@ -58,5 +63,14 @@
     >
         <div id="app" role="main"></div>
         <script type="module" src="/src/main.js" defer></script>
+
+        <!-- Prism.js and Clipboard.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
     </body>
 </html>

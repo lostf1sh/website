@@ -60,6 +60,13 @@ const toggleTag = (tag) => {
     selectedTag.value = selectedTag.value === tag ? null : tag;
 };
 
+const calculateReadingTime = (text) => {
+    const wordsPerMinute = 200;
+    const words = text.trim().split(/\s+/).length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return minutes;
+};
+
 const parseMarkdown = (content) => {
     let html = content;
 
@@ -72,8 +79,17 @@ const parseMarkdown = (content) => {
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
+
+        const languageClass = lang ? `language-${lang.toLowerCase()}` : '';
+        const blockId = `code-block-${codeBlocks.length}`;
+
         codeBlocks.push(
-            `<pre class="bg-catppuccin-surface/50 border border-catppuccin-overlay/30 rounded p-4 overflow-x-auto my-4"><code>${escapedCode}</code></pre>`
+            `<div class="relative group">
+                <button data-clipboard-target="#${blockId}" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-catppuccin-subtle hover:text-catppuccin-mauve px-2 py-1 bg-catppuccin-crust border border-catppuccin-surface rounded hover:bg-catppuccin-mauve/10 cursor-pointer z-10">
+                    copy
+                </button>
+                <pre class="bg-catppuccin-surface/50 border border-catppuccin-overlay/30 rounded p-4 overflow-x-auto my-4"><code id="${blockId}" class="${languageClass}">${escapedCode}</code></pre>
+            </div>`
         );
         return placeholder;
     });
@@ -172,10 +188,40 @@ const parseMarkdown = (content) => {
     return html;
 };
 
+const readingTime = (content) => {
+    const text = content.replace(/```[\s\S]*?```/g, '') // Remove code blocks
+                       .replace(/[^\w\s]/g, ' ') // Remove special chars
+                       .replace(/\s+/g, ' ') // Normalize spaces
+                       .trim();
+    return calculateReadingTime(text);
+};
+
 onMounted(() => {
     loadPosts();
     document.documentElement.style.overflowY = "auto";
     document.body.style.overflowY = "auto";
+
+    // Initialize Clipboard.js
+    const clipboard = new ClipboardJS('[data-clipboard-target]');
+
+    clipboard.on('success', function(e) {
+        const button = e.trigger;
+        const originalText = button.textContent;
+        button.textContent = 'copied!';
+        button.classList.add('text-catppuccin-green');
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove('text-catppuccin-green');
+        }, 2000);
+        e.clearSelection();
+    });
+
+    // Initialize Prism syntax highlighting
+    setTimeout(() => {
+        if (window.Prism) {
+            Prism.highlightAll();
+        }
+    }, 100);
 
     const slugFromQuery = route.query.post;
     if (slugFromQuery) {
@@ -345,6 +391,8 @@ watch(
                             class="flex items-center gap-4 text-sm text-catppuccin-subtle mb-4"
                         >
                             <span>{{ formatDate(currentPost.date) }}</span>
+                            <span class="text-catppuccin-surface">•</span>
+                            <span>~{{ readingTime(currentPost.content) }} min read</span>
                             <span class="text-catppuccin-surface">•</span>
                             <div class="flex gap-2">
                                 <span
