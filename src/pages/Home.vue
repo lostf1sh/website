@@ -5,6 +5,7 @@ import { getRecentTracks } from "@/services/lastfmService";
 import {
     getContributionData,
     getContributionLevel,
+    getGitHubContributionUrl,
 } from "@/services/githubService";
 
 const discordStatusColor = computed(() => lanyardData.discordStatusColor);
@@ -586,23 +587,30 @@ onBeforeUnmount(() => {
                                 :key="weekIndex"
                                 class="flex flex-col gap-[3px] md:gap-1 md:flex-1"
                             >
-                                <div
-                                    v-for="(day, dayIndex) in week"
-                                    :key="dayIndex"
-                                    class="w-[10px] h-[10px] md:w-auto md:h-auto md:aspect-square rounded-sm"
-                                    :class="[
-                                        getContributionLevel(day.count) === 0
-                                            ? 'bg-catppuccin-surface/50'
-                                            : getContributionLevel(day.count) === 1
-                                              ? 'bg-catppuccin-green/30'
-                                              : getContributionLevel(day.count) === 2
-                                                ? 'bg-catppuccin-green/50'
-                                                : getContributionLevel(day.count) === 3
-                                                  ? 'bg-catppuccin-green/70'
-                                                  : 'bg-catppuccin-green',
-                                    ]"
-                                    :title="`${day.date}: ${day.count} contributions`"
-                                ></div>
+                                <template v-for="(day, dayIndex) in week" :key="dayIndex">
+                                    <a
+                                        v-if="day.count > 0"
+                                        :href="getGitHubContributionUrl(day.date)"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="w-[10px] h-[10px] md:w-auto md:h-auto md:aspect-square rounded-sm transition-all hover:ring-1 hover:ring-catppuccin-green hover:scale-110 cursor-pointer"
+                                        :class="[
+                                            getContributionLevel(day.count) === 1
+                                                ? 'bg-catppuccin-green/30 hover:bg-catppuccin-green/40'
+                                                : getContributionLevel(day.count) === 2
+                                                  ? 'bg-catppuccin-green/50 hover:bg-catppuccin-green/60'
+                                                  : getContributionLevel(day.count) === 3
+                                                    ? 'bg-catppuccin-green/70 hover:bg-catppuccin-green/80'
+                                                    : 'bg-catppuccin-green hover:bg-catppuccin-green',
+                                        ]"
+                                        :title="`${day.date}: ${day.count} contributions - Click to view on GitHub`"
+                                    ></a>
+                                    <div
+                                        v-else
+                                        class="w-[10px] h-[10px] md:w-auto md:h-auto md:aspect-square rounded-sm bg-catppuccin-surface/50"
+                                        :title="`${day.date}: ${day.count} contributions`"
+                                    ></div>
+                                </template>
                             </div>
                         </div>
                     </div>
