@@ -194,11 +194,38 @@ onMounted(() => {
 onBeforeUnmount(() => {
     if (updateInterval) clearInterval(updateInterval);
 });
+
+const BIRTH_DATE = new Date("2008-06-06T00:00:00");
+
+const currentAge = ref(0);
+const currentTime = ref("");
+
+const updateAge = () => {
+    const now = new Date();
+    const diffMs = now - BIRTH_DATE;
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    currentAge.value = diffDays / 365.25;
+    requestAnimationFrame(updateAge);
+};
+
+const updateTime = () => {
+    const now = new Date();
+    currentTime.value = now.toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+    requestAnimationFrame(updateTime);
+};
+
+updateAge();
+updateTime();
 </script>
 
 <template>
     <div class="w-full min-h-screen overflow-x-hidden font-mono">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
             <div class="mb-12">
                 <div class="mb-8">
                     <div class="text-catppuccin-subtle text-sm mb-2">
@@ -211,9 +238,12 @@ onBeforeUnmount(() => {
                         <span class="text-catppuccin-subtle">@</span>
                         <span class="text-catppuccin-blue">f1sh.dev</span>
                     </h1>
-                    <div class="text-sm text-catppuccin-gray mb-4">
+                    <div class="text-sm text-catppuccin-gray mb-4 flex items-center gap-2">
                         <span class="text-catppuccin-subtle">aka </span
                         ><span class="text-catppuccin-green">moli</span>
+                        <span class="text-catppuccin-surface">|</span>
+                        <span class="text-catppuccin-peach">{{ currentTime }}</span>
+                        <span class="text-catppuccin-subtle text-xs">TRT</span>
                     </div>
 
                     <div class="flex items-center flex-wrap gap-4 text-sm">
@@ -250,6 +280,7 @@ onBeforeUnmount(() => {
                         ~$ cat about.txt
                     </div>
                     <p class="text-catppuccin-text leading-relaxed mb-4">
+                        <span class="text-catppuccin-yellow">{{ currentAge.toFixed(10) }}</span> y/o
                         junior dev. building stuff and learning along the way.
                         code, table tennis, cooking. based in turkey.
                     </p>
@@ -377,7 +408,7 @@ onBeforeUnmount(() => {
                             :href="repo.html_url"
                             target="_blank"
                             :style="{ transitionDelay: `${index * 50}ms` }"
-                            class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-colors"
+                            class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40"
                         >
                             <div
                                 class="flex items-start gap-3 text-sm hover:text-catppuccin-mauve transition-colors px-3 py-2"
@@ -471,7 +502,7 @@ onBeforeUnmount(() => {
                             :href="currentTrack.url"
                             target="_blank"
                             :key="`current-${currentTrack.name}-${currentTrack.artist['#text']}`"
-                            class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-colors"
+                            class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40"
                         >
                             <div
                                 class="flex items-start gap-3 text-sm px-3 py-2"
@@ -514,7 +545,7 @@ onBeforeUnmount(() => {
                             :style="{
                                 transitionDelay: `${(index + (currentTrack ? 1 : 0)) * 50}ms`,
                             }"
-                            class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-colors"
+                            class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40"
                         >
                             <div
                                 class="flex items-start gap-3 text-sm px-3 py-2"

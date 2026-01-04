@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "./base.css";
 
 * {
@@ -9,7 +9,7 @@ html,
 body {
     min-height: 100vh;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: hidden;
     overscroll-behavior: none;
 }
 
@@ -52,7 +52,7 @@ body {
     background-attachment: fixed, fixed, fixed, scroll, scroll;
     background-repeat: no-repeat;
     min-height: 100vh;
-    font-family: "JetBrains Mono", monospace;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
     font-size: 14px;
     line-height: 1.6;
 }

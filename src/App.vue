@@ -21,6 +21,23 @@ router.isReady().then(() => {
 </template>
 
 <style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+#app {
+    transform: scale(0.9);
+    transform-origin: center center;
+    margin-top: -5vh;
+}
+</style>
+
+<style>
 .page-enter-active {
     transition: all 0.3s ease-out;
 }
