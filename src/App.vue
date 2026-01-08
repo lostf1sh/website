@@ -22,18 +22,23 @@ router.isReady().then(() => {
 
 <style>
 body {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
     margin: 0;
-    overflow: hidden;
 }
 
-#app {
-    transform: scale(0.9);
-    transform-origin: center center;
-    margin-top: -5vh;
+@media (min-width: 1024px) {
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    #app {
+        transform: scale(0.9);
+        transform-origin: center center;
+        margin-top: -5vh;
+    }
 }
 </style>
 
