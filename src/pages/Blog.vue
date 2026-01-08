@@ -4,27 +4,18 @@ import { useRoute, useRouter } from "vue-router";
 import {
     getAllPosts,
     getPostBySlug,
-    getAllTags,
     formatDate,
 } from "@/services/blogService";
 
 const view = ref("list");
 const currentPost = ref(null);
-const selectedTag = ref(null);
 const posts = ref([]);
-const tags = ref([]);
 
 const route = useRoute();
 const router = useRouter();
 
-const filteredPosts = computed(() => {
-    if (!selectedTag.value) return posts.value;
-    return posts.value.filter((p) => p.tags.includes(selectedTag.value));
-});
-
 const loadPosts = () => {
     posts.value = getAllPosts();
-    tags.value = getAllTags();
 };
 
 const openPost = (slug) => {
@@ -54,10 +45,6 @@ const goBack = ({ skipQueryUpdate = false } = {}) => {
         delete newQuery.post;
         router.replace({ name: "Blog", query: newQuery });
     }
-};
-
-const toggleTag = (tag) => {
-    selectedTag.value = selectedTag.value === tag ? null : tag;
 };
 
 const calculateReadingTime = (text) => {
@@ -278,40 +265,15 @@ watch(
                             </router-link>
                         </div>
 
-                        <div class="border-l-2 border-catppuccin-surface pl-4">
-                            <div class="text-catppuccin-subtle text-sm mb-2">
-                                ~$ ls tags/
-                            </div>
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    v-for="tag in tags"
-                                    :key="tag"
-                                    @click="toggleTag(tag)"
-                                    :class="[
-                                        'px-3 py-1 rounded text-xs transition-colors border',
-                                        selectedTag === tag
-                                            ? 'bg-catppuccin-mauve/20 text-catppuccin-mauve border-catppuccin-mauve'
-                                            : 'bg-catppuccin-base/40 text-catppuccin-subtle border-catppuccin-surface hover:text-catppuccin-text hover:border-catppuccin-overlay',
-                                    ]"
-                                >
-                                    {{ tag }}
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="border-l-2 border-catppuccin-surface pl-4">
                         <div class="text-catppuccin-subtle text-sm mb-3">
                             ~$ ls -la posts/
-                            <span
-                                v-if="selectedTag"
-                                class="text-catppuccin-mauve"
-                                >| grep "{{ selectedTag }}"</span
-                            >
                         </div>
 
                         <div
-                            v-if="!filteredPosts.length"
+                            v-if="!posts.length"
                             class="text-sm text-catppuccin-subtle"
                         >
                             no posts found
@@ -319,7 +281,7 @@ watch(
 
                         <div v-else class="space-y-3">
                             <div
-                                v-for="post in filteredPosts"
+                                v-for="post in posts"
                                 :key="post.id"
                                 @click="openPost(post.slug)"
                                 class="block group rounded-md border border-catppuccin-surface/60 bg-catppuccin-base/20 hover:bg-catppuccin-base/30 hover:border-catppuccin-mauve/40 transition-all cursor-pointer"
