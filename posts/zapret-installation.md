@@ -2,7 +2,7 @@
 title: bypassing dpi with zapret on linux
 date: 2026-01-10
 tags: [linux, privacy, networking, censorship]
-excerpt: step by step zapret installation to bypass isp deep packet inspection.ZA
+excerpt: step by step zapret installation to bypass isp deep packet inspection.
 ---
 
 # bypassing dpi with zapret on linux
